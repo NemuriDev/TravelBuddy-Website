@@ -1,0 +1,951 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TravelBuddy - My Profile</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <style>
+        :root {
+            --forest-green: #1a4332;
+            --forest-green-dark: #123527;
+            --terracotta: #c45c26;
+            --terracotta-dark: #a84d1f;
+            --amber: #f59e0b;
+            --cream: #fef9f0;
+            --sand: #e8d5b7;
+            --mint: #d4e8d4;
+            --charcoal: #1a1a1a;
+            --light-gray: #ddd;
+            --medium-gray: #888;
+            --border-color: #e3d7bd;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Inter", sans-serif;
+            color: var(--charcoal);
+            background: var(--cream);
+        }
+
+        h1,
+        h2,
+        h3,
+        .brand {
+            font-family: "Fraunces", serif;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--forest-green);
+            padding: 18px 40px;
+        }
+
+        .brand {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .brand span {
+            color: #e59a3d;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 34px;
+        }
+
+        .nav-links a {
+            color: #f1ece0;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .nav-user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 5px 14px 5px 5px;
+            border-radius: 999px;
+        }
+
+        .nav-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--amber);
+            color: var(--charcoal);
+            font-size: 0.72rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-user span {
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        
+        .profile-hero {
+            background:
+                radial-gradient(circle at 15% 30%,
+                    rgba(245, 158, 11, 0.1),
+                    transparent 55%),
+                radial-gradient(circle at 85% 70%,
+                    rgba(196, 92, 38, 0.1),
+                    transparent 55%),
+                #1a4332;
+            padding: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .avatar-box {
+            width: 76px;
+            height: 76px;
+            min-width: 76px;
+            border-radius: 16px;
+            background: var(--amber);
+            color: var(--charcoal);
+            font-family: "Fraunces", serif;
+            font-weight: 700;
+            font-size: 1.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .profile-text .member-since {
+            color: var(--amber);
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            font-size: 0.75rem;
+            margin-bottom: 4px;
+        }
+
+        .profile-text h1 {
+            color: var(--cream);
+            font-size: 1.7rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .profile-meta {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            color: rgba(254, 249, 240, 0.65);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .profile-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .profile-bio {
+            color: rgba(254, 249, 240, 0.7);
+            font-size: 0.92rem;
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            font-family: "Inter", sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: var(--cream);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.14);
+        }
+
+        .btn-danger {
+            background: var(--terracotta);
+            color: var(--cream);
+        }
+
+        .btn-danger:hover {
+            background: var(--terracotta-dark);
+        }
+
+        .btn-dark {
+            background: var(--forest-green);
+            color: var(--cream);
+        }
+
+        .btn-dark:hover {
+            background: var(--forest-green-dark);
+        }
+
+        .stats-bar {
+            display: flex;
+            background: #fff;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .stat-box {
+            flex: 1;
+            text-align: center;
+            padding: 22px 10px;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .stat-box:last-child {
+            border-right: none;
+        }
+
+        .stat-box strong {
+            display: block;
+            font-family: "Fraunces", serif;
+            font-size: 1.7rem;
+            color: var(--forest-green);
+        }
+
+        .stat-box span {
+            display: block;
+            font-size: 0.82rem;
+            color: var(--medium-gray);
+            margin-top: 2px;
+        }
+
+        
+        .content {
+            max-width: 1160px;
+            margin: 0 auto;
+            padding: 32px 40px 60px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 30px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 24px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            font-family: "Inter", sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--medium-gray);
+            padding: 0 0 12px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--forest-green);
+            border-bottom-color: var(--forest-green);
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+       
+        .activity-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 18px 22px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .activity-left {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+        }
+
+        .activity-icon {
+            width: 38px;
+            height: 38px;
+            min-width: 38px;
+            border-radius: 10px;
+            background: var(--sand);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .activity-icon.visit {
+            background: var(--mint);
+        }
+
+        .activity-text .headline {
+            font-size: 0.95rem;
+            color: var(--charcoal);
+        }
+
+        .activity-text .headline b {
+            font-weight: 700;
+        }
+
+        .activity-text .stars {
+            color: var(--amber);
+            font-size: 0.82rem;
+            margin-left: 4px;
+        }
+
+        .activity-text .quote {
+            color: var(--medium-gray);
+            font-style: italic;
+            font-size: 0.88rem;
+            margin-top: 4px;
+        }
+
+        .activity-time {
+            color: var(--medium-gray);
+            font-size: 0.82rem;
+            white-space: nowrap;
+        }
+
+        
+        .places-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+
+        .place-card {
+            display: flex;
+            gap: 14px;
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px;
+        }
+
+        .place-thumb {
+            width: 84px;
+            height: 84px;
+            min-width: 84px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: var(--light-gray);
+        }
+
+        .place-category {
+            color: var(--terracotta);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+        }
+
+        .place-name {
+            font-family: "Fraunces", serif;
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 3px 0 4px;
+            color: var(--charcoal);
+        }
+
+        .place-loc {
+            font-size: 0.82rem;
+            color: var(--medium-gray);
+            margin-bottom: 6px;
+        }
+
+        .place-rating {
+            font-size: 0.82rem;
+            color: var(--amber);
+        }
+
+        .place-rating .count {
+            color: var(--medium-gray);
+            margin-left: 3px;
+        }
+
+        
+        .settings-card {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 460px;
+        }
+
+        .settings-card h2 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+        }
+
+        .field {
+            margin-bottom: 18px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: #7a7568;
+            margin-bottom: 7px;
+        }
+
+        .field input,
+        .field textarea {
+            width: 100%;
+            padding: 11px 13px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: #fffdf9;
+            font-family: inherit;
+            font-size: 0.92rem;
+            color: var(--charcoal);
+            outline: none;
+        }
+
+        .field input:focus,
+        .field textarea:focus {
+            border-color: var(--terracotta);
+        }
+
+        .field textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 6px 0 18px;
+        }
+
+        #saveSettingsBtn {
+            margin-top: 4px;
+        }
+
+        .section-subhead {
+            font-family: "Inter", sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--charcoal);
+            margin-bottom: 16px;
+        }
+
+        .edit-photo-row {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            margin-bottom: 22px;
+        }
+
+        .edit-photo-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: flex-start;
+        }
+
+        .btn-outline-dark {
+            display: inline-block;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--charcoal);
+            font-family: "Inter", sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .btn-outline-dark:hover {
+            border-color: var(--terracotta);
+            color: var(--terracotta);
+        }
+
+        .photo-hint {
+            font-size: 0.78rem;
+            color: var(--medium-gray);
+        }
+
+        .save-confirm {
+            display: none;
+            color: #2e7d4f;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .save-confirm.show {
+            display: block;
+        }
+
+        .delete-link {
+            color: var(--medium-gray);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: underline;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-family: inherit;
+        }
+
+        /* EDIT BIO CARD (shown in place of tabs when editing) */
+        .edit-bio-card {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 26px 28px;
+            max-width: 720px;
+        }
+
+        .edit-bio-card h2 {
+            font-size: 1.2rem;
+            margin-bottom: 14px;
+        }
+
+        .edit-bio-card textarea {
+            width: 100%;
+            min-height: 60px;
+            padding: 12px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.92rem;
+            color: var(--charcoal);
+            outline: none;
+            resize: vertical;
+            margin-bottom: 16px;
+        }
+
+        .edit-bio-card textarea:focus {
+            border-color: var(--terracotta);
+        }
+
+        .footer {
+            background: var(--forest-green);
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .footer .footer-brand {
+            font-family: "Fraunces", serif;
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: var(--amber);
+            margin-bottom: 10px;
+        }
+
+        .footer .footer-tagline {
+            color: rgba(254, 249, 240, 0.6);
+            font-size: 0.95rem;
+            margin-bottom: 18px;
+        }
+
+        .footer .footer-copy {
+            color: rgba(254, 249, 240, 0.6);
+            font-size: 0.82rem;
+        }
+
+        @media (max-width: 800px) {
+            .profile-hero {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .places-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .content {
+                padding: 28px 20px 50px;
+            }
+
+            .navbar {
+                padding: 16px 20px;
+            }
+
+            .nav-links {
+                gap: 16px;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .nav-links a:not(.nav-user) {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="brand">Travel<span>Buddy</span></div>
+        <div class="nav-links">
+            <a href="#">Home</a>
+            <a href="#">Places</a>
+            <a href="#">Contact</a>
+            <div class="nav-user">
+                <div class="nav-avatar">JD</div>
+                <span>Juan</span>
+            </div>
+        </div>
+    </nav>
+
+    
+    <div class="profile-hero">
+        <div class="profile-info">
+            <div class="avatar-box">JD</div>
+            <div class="profile-text">
+                <div class="member-since">Member since August 2026</div>
+                <h1 id="headerName">Juan dela Cruz</h1>
+                <div class="profile-meta">
+                    <span>✉️ <span id="headerEmail">juandelacruz@gmail.com</span></span>
+                    <span>📍 <span id="headerLocation">Malolos, Bulacan</span></span>
+                </div>
+                <p class="profile-bio" id="bioDisplay">
+                    Proud Bulakeño exploring every corner of this beautiful province.
+                </p>
+            </div>
+        </div>
+        <div class="profile-actions">
+            <button class="btn btn-outline" id="editToggleBtn" onclick="toggleEditMode()">
+                Edit Profile
+            </button>
+            <button class="btn btn-danger" onclick="logOut()">Log Out</button>
+        </div>
+    </div>
+
+    
+    <div class="stats-bar">
+        <div class="stat-box"><strong>3</strong><span>Reviews Written</span></div>
+        <div class="stat-box"><strong>4</strong><span>Places Saved</span></div>
+        <div class="stat-box"><strong>12</strong><span>Places Visited</span></div>
+    </div>
+
+    <div class="content">
+        
+        <div id="tabsSection">
+            <div class="tabs">
+                <button class="tab-btn active" id="tab-activity" onclick="switchTab('activity')">
+                    Recent Activity
+                </button>
+                <button class="tab-btn" id="tab-saved" onclick="switchTab('saved')">
+                    Saved Places
+                </button>
+                <button class="tab-btn" id="tab-settings" onclick="switchTab('settings')">
+                    Settings
+                </button>
+            </div>
+
+            
+            <div class="tab-panel active" id="panel-activity">
+                <div class="activity-card">
+                    <div class="activity-left">
+                        <div class="activity-icon">✏️</div>
+                        <div class="activity-text">
+                            <div class="headline">
+                                Reviewed <b>Barasoain Church</b><span class="stars">★★★★★</span>
+                            </div>
+                            <div class="quote">
+                                "Truly magnificent. The history here is palpable."
+                            </div>
+                        </div>
+                    </div>
+                    <div class="activity-time">2 days ago</div>
+                </div>
+
+                <div class="activity-card">
+                    <div class="activity-left">
+                        <div class="activity-icon">✏️</div>
+                        <div class="activity-text">
+                            <div class="headline">
+                                Reviewed <b>Angat River & Dam</b><span class="stars">★★★★☆</span>
+                            </div>
+                            <div class="quote">
+                                "Stunning scenery. Perfect for a day trip from the city."
+                            </div>
+                        </div>
+                    </div>
+                    <div class="activity-time">1 week ago</div>
+                </div>
+
+                <div class="activity-card">
+                    <div class="activity-left">
+                        <div class="activity-icon visit">📍</div>
+                        <div class="activity-text">
+                            <div class="headline">Visited <b>Bocaue River Festival</b></div>
+                        </div>
+                    </div>
+                    <div class="activity-time">3 weeks ago</div>
+                </div>
+            </div>
+
+            
+            <div class="tab-panel" id="panel-saved">
+                <div class="places-grid">
+                    <div class="place-card">
+                        <img class="place-thumb"
+                            src="https://images.unsplash.com/photo-1644063858399-f8f45b52fd7c?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                            alt="Barasoain Church" />
+                        <div>
+                            <div class="place-category">Heritage</div>
+                            <div class="place-name">Barasoain Church</div>
+                            <div class="place-loc">📍 Malolos City</div>
+                            <div class="place-rating">
+                                ★★★★★ <span class="count">4.9 (312)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="place-card">
+                        <img class="place-thumb"
+                            src="https://images.unsplash.com/photo-1548013146-72479768bada?q=80&w=300&auto=format&fit=crop"
+                            alt="Marcelo H. del Pilar Shrine" />
+                        <div>
+                            <div class="place-category">Heritage</div>
+                            <div class="place-name">Marcelo H. del Pilar Shrine</div>
+                            <div class="place-loc">📍 Bulakan, Bulacan</div>
+                            <div class="place-rating">
+                                ★★★★★ <span class="count">4.7 (198)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="place-card">
+                        <img class="place-thumb"
+                            src="https://images.unsplash.com/photo-1500534623283-312aade485b7?q=80&w=300&auto=format&fit=crop"
+                            alt="Angat River & Dam" />
+                        <div>
+                            <div class="place-category">Nature</div>
+                            <div class="place-name">Angat River & Dam</div>
+                            <div class="place-loc">📍 Norzagaray, Bulacan</div>
+                            <div class="place-rating">
+                                ★★★★★ <span class="count">4.6 (143)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="place-card">
+                        <img class="place-thumb"
+                            src="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=300&auto=format&fit=crop"
+                            alt="Bocaue River Festival" />
+                        <div>
+                            <div class="place-category">Festival</div>
+                            <div class="place-name">Bocaue River Festival</div>
+                            <div class="place-loc">📍 Bocaue, Bulacan</div>
+                            <div class="place-rating">
+                                ★★★★★ <span class="count">4.8 (267)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="tab-panel" id="panel-settings">
+                <div class="settings-card">
+                    <h2>Account Settings</h2>
+                    <div class="field">
+                        <label>Full Name</label>
+                        <input type="text" id="settingsName" value="Juan dela Cruz" />
+                    </div>
+                    <div class="field">
+                        <label>Email Address</label>
+                        <input type="email" id="settingsEmail" value="justinnico20@gmail.com" />
+                    </div>
+                    <div class="field">
+                        <label>Location</label>
+                        <input type="text" id="settingsLocation" value="Malolos, Bulacan" />
+                    </div>
+                    <hr class="divider" />
+                    <h3 class="section-subhead">Change Password</h3>
+                    <div class="field">
+                        <label>New Password</label>
+                        <input type="password" id="settingsNewPassword" placeholder="••••••••" />
+                    </div>
+                    <div class="field">
+                        <label>Confirm New Password</label>
+                        <input type="password" id="settingsConfirmPassword" placeholder="••••••••" />
+                    </div>
+                    <button class="btn btn-dark" id="saveSettingsBtn" onclick="saveSettings()">
+                        Save Changes
+                    </button>
+                    <p class="save-confirm" id="saveConfirm">
+                        Changes saved successfully.
+                    </p>
+                    <hr class="divider" />
+                    <button class="delete-link">Delete Account</button>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="edit-bio-card" id="editBioSection" style="display: none">
+            <div class="edit-photo-row">
+                <div class="avatar-box" id="editAvatarPreview">JD</div>
+                <div class="edit-photo-actions">
+                    <label class="btn btn-outline-dark" for="profilePhotoInput">Change Profile Photo</label>
+                    <input type="file" id="profilePhotoInput" accept="image/*" hidden onchange="previewPhoto(event)" />
+                    <p class="photo-hint">JPG or PNG. Max 2MB.</p>
+                </div>
+            </div>
+            <h2>Edit Bio</h2>
+            <textarea id="bioTextarea">
+Proud Bulakeño exploring every corner of this beautiful province.</textarea>
+            <button class="btn btn-dark" onclick="saveBio()">Save Changes</button>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-brand">TravelBuddy</div>
+        <p class="footer-tagline">
+            A community-powered guide to the province of Bulacan, Philippines.
+        </p>
+        <p class="footer-copy">
+            © 2026 TravelBuddy. Made with pride for the Bulakeños.
+        </p>
+    </footer>
+
+    <script>
+        function switchTab(tab) {
+            document
+                .querySelectorAll(".tab-btn")
+                .forEach((btn) => btn.classList.remove("active"));
+            document
+                .querySelectorAll(".tab-panel")
+                .forEach((panel) => panel.classList.remove("active"));
+            document.getElementById("tab-" + tab).classList.add("active");
+            document.getElementById("panel-" + tab).classList.add("active");
+        }
+
+        function toggleEditMode() {
+            const tabsSection = document.getElementById("tabsSection");
+            const editSection = document.getElementById("editBioSection");
+            const editBtn = document.getElementById("editToggleBtn");
+            const isEditing = editSection.style.display !== "none";
+
+            if (isEditing) {
+                tabsSection.style.display = "block";
+                editSection.style.display = "none";
+                editBtn.textContent = "Edit Profile";
+            } else {
+                tabsSection.style.display = "none";
+                editSection.style.display = "block";
+                editBtn.textContent = "Cancel";
+            }
+        }
+
+        function saveBio() {
+            const newBio = document.getElementById("bioTextarea").value;
+            document.getElementById("bioDisplay").textContent = newBio;
+            toggleEditMode();
+        }
+
+        function saveSettings() {
+            const name = document.getElementById("settingsName").value;
+            const email = document.getElementById("settingsEmail").value;
+            const location = document.getElementById("settingsLocation").value;
+            const newPassword = document.getElementById(
+                "settingsNewPassword",
+            ).value;
+            const confirmPassword = document.getElementById(
+                "settingsConfirmPassword",
+            ).value;
+
+            if (newPassword || confirmPassword) {
+                if (newPassword !== confirmPassword) {
+                    alert("Passwords don't match. Please try again.");
+                    return;
+                }
+            }
+
+            document.getElementById("headerName").textContent = name;
+            document.getElementById("headerEmail").textContent = email;
+            document.getElementById("headerLocation").textContent = location;
+
+            document.getElementById("settingsNewPassword").value = "";
+            document.getElementById("settingsConfirmPassword").value = "";
+
+            const confirm = document.getElementById("saveConfirm");
+            confirm.classList.add("show");
+            setTimeout(() => confirm.classList.remove("show"), 2500);
+        }
+
+        function logOut() {
+            window.location.href = "index.html";
+        }
+
+        function previewPhoto(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const preview = document.getElementById("editAvatarPreview");
+                preview.style.backgroundImage = `url(${e.target.result})`;
+                preview.style.backgroundSize = "cover";
+                preview.style.backgroundPosition = "center";
+                preview.textContent = "";
+            };
+            reader.readAsDataURL(file);
+        }
+    </script>
+</body>
+
+</html>
