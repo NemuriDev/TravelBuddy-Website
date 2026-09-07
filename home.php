@@ -53,11 +53,6 @@ $link = url('destination.php');
                     <a class="primary-button" href="destination.php#places">Explore the guide <span aria-hidden="true">↗</span></a>
                     <a class="secondary-button" href="LogIn.php">Create a free account</a>
                 </div>
-                <div class="hero-stats">
-                    <div class="hero-stat"><strong>40+</strong><span>Places</span></div>
-                    <div class="hero-stat"><strong>500+</strong><span>Reviews</span></div>
-                    <div class="hero-stat"><strong>4.8★</strong><span>Rating</span></div>
-                </div>
             </div>
             <div class="hero-art reveal" style="--delay: .12s">
                 <div class="hero-art-image image-frame">
@@ -84,8 +79,7 @@ $link = url('destination.php');
             </div>
             <div class="destination-grid" id="featured-grid"></div>
         </section>
-            </div>
-        </section>
+
         <?php include __DIR__ . '/footer.php'; ?>
     </main>
 

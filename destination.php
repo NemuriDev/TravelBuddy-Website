@@ -118,7 +118,7 @@ $link = url('destination.php');
         <section class="about-section" id="about" aria-labelledby="about-title">
             <div class="about-intro">
                 <p class="section-kicker">How to use this guide</p>
-                <p id="places-title">Leave a little room for the places you did not plan for.</p>
+                <p id="about-title">Leave a little room for the places you did not plan for.</p>
             </div>
             <div class="about-steps">
                 <div><span>01 /</span>
@@ -151,7 +151,6 @@ $link = url('destination.php');
                 <h2 id="modal-title"></h2>
                 <div class="modal-location"><span aria-hidden="true">⌖</span> <span id="modal-municipality"></span>
                 </div>
-                <div class="modal-rating" id="modal-rating"></div>
                 <p class="modal-description" id="modal-description"></p>
                 <div class="modal-tags" id="modal-tags"></div>
 

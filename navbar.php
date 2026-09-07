@@ -35,7 +35,7 @@ $initials = mb_substr($initials, 0, 2) ?: 'TB';
             <a href="home.php" class="<?= $activePage === 'home' ? 'active' : '' ?>">Home</a>
             <a href="destination.php#places" class="<?= $activePage === 'destination' ? 'active' : '' ?>">Places</a>
             <a href="destination.php#about">Contact</a>
-            <button id="nav-saved" type="button"><span class="heart-icon" aria-hidden="true">♡</span> Saved
+            <button id="nav-saved" type="button"><span class="heart-icon" aria-hidden="true"></span> Saved
                 <span class="saved-count" id="nav-saved-count">0</span></button>
             <?php if ($loggedIn): ?>
                 <a class="nav-account" href="userprofile.php">

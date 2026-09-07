@@ -51,17 +51,17 @@ define('DB_COLLATION', 'utf8mb4_unicode_ci');
 // SESSION CONFIGURATION
 // ============================================================
 
+// Session settings - define BEFORE starting session
+define('SESSION_NAME', 'travelbuddies_session');
+define('SESSION_LIFETIME', 3600); // 1 hour in seconds
+
+// Set session name BEFORE session_start()
+session_name(SESSION_NAME);
+
 // Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-
-// Session settings
-define('SESSION_NAME', 'travelbuddies_session');
-define('SESSION_LIFETIME', 3600); // 1 hour in seconds
-
-// Set session name
-session_name(SESSION_NAME);
 
 // ============================================================
 // FILE & PATH CONFIGURATION
