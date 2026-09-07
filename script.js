@@ -63,32 +63,44 @@ const destinations = [
     { id: "pulong-kabyawan", municipality: "Pulilan", name: "Pulong Kabyawan (farm café)", description: "A farm café blending local produce with relaxed garden seating.", location: "Inaon, Pulilan, Bulacan", category: "Resort", tag: "Farm café", time: "Afternoon", imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqkkdIk8OYYaP2YUXlWqNNLINjpN_-61AgSDIiqjTz6CrTOf9uXjOTkao&s=10" }
 ];
 
-// Deterministic "community rating" so the same place always shows the
-// same stars/review count across renders (no backend yet to store real
-// reviews).
+/* -------------------------------------------------------------------
+   Destination rating helpers
+   ------------------------------------------------------------------- */
+
 function hashString(value) {
     let hash = 0;
+
     for (let i = 0; i < value.length; i += 1) {
         hash = (hash * 31 + value.charCodeAt(i)) >>> 0;
     }
+
     return hash;
 }
 
 function ratingFor(place) {
     const hash = hashString(place.id);
-    const rating = 4.3 + ((hash % 71) / 100); // 4.30 – 5.00
-    const reviews = 40 + (hash % 280); // 40 – 319
-    return { rating: rating.toFixed(1), reviews };
+    const rating = 4.3 + ((hash % 71) / 100);
+    const reviews = 40 + (hash % 280);
+
+    return {
+        rating: rating.toFixed(1),
+        reviews
+    };
 }
 
 function starString(rating) {
     const full = Math.round(parseFloat(rating));
+
     return "★".repeat(full) + "☆".repeat(5 - full);
 }
 
 function escapeHtml(value) {
     return String(value).replace(/[&<>"']/g, (character) => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
     }[character]));
 }
 
@@ -96,117 +108,262 @@ function findDestination(id) {
     return destinations.find((place) => place.id === id) || null;
 }
 
-// Seed reviews so the feature has something to show before anyone has
-// written a real one. Keyed by place id; places with no seed just start empty.
+/* -------------------------------------------------------------------
+   Seed reviews
+   ------------------------------------------------------------------- */
+
 const seedReviews = {
     "barasoain-church": [
-        { name: "Maria Santos", initials: "MS", date: "March 2025", rating: 5, text: "Truly magnificent. The architecture is breathtaking and the history embedded in its walls is palpable. A must for every Filipino." },
-        { name: "Jose Reyes", initials: "JR", date: "January 2025", rating: 5, text: "Humbling experience. You can feel the weight of history standing inside. The guide was knowledgeable and passionate." }
+        {
+            name: "Maria Santos",
+            initials: "MS",
+            date: "March 2025",
+            rating: 5,
+            text: "Truly magnificent. The architecture is breathtaking and the history embedded in its walls is palpable. A must for every Filipino."
+        },
+        {
+            name: "Jose Reyes",
+            initials: "JR",
+            date: "January 2025",
+            rating: 5,
+            text: "Humbling experience. You can feel the weight of history standing inside. The guide was knowledgeable and passionate."
+        }
     ],
+
     "mount-manalmon": [
-        { name: "Paolo Guerrero", initials: "PG", date: "February 2025", rating: 5, text: "The ridge views near the summit are worth every step. Bring more water than you think you need." }
+        {
+            name: "Paolo Guerrero",
+            initials: "PG",
+            date: "February 2025",
+            rating: 5,
+            text: "The ridge views near the summit are worth every step. Bring more water than you think you need."
+        }
     ],
+
     "krus-sa-wawa": [
-        { name: "Elena Pascual", initials: "EP", date: "July 2025", rating: 5, text: "Caught the river festival procession from here — the lit-up pagodas on the water are unlike anything else I've seen." }
+        {
+            name: "Elena Pascual",
+            initials: "EP",
+            date: "July 2025",
+            rating: 5,
+            text: "Caught the river festival procession from here — the lit-up pagodas on the water are unlike anything else I've seen."
+        }
     ]
 };
 
-/* -------------------------------------------------------------------
-   Auth page (LogIn.php)
-   ------------------------------------------------------------------- */
+/* ===================================================================
+   AUTH PAGE
+   =================================================================== */
 
+/*
+ * Switch between Login and Sign Up.
+ */
 function switchAuthTab(tab) {
     const loginTab = document.getElementById("loginTab");
     const signupTab = document.getElementById("signupTab");
+
     const loginForm = document.getElementById("loginForm");
     const signupForm = document.getElementById("signupForm");
-    if (!loginTab || !signupTab || !loginForm || !signupForm) return;
+
+    if (!loginTab || !signupTab || !loginForm || !signupForm) {
+        return;
+    }
 
     if (tab === "login") {
         loginTab.classList.add("active");
         signupTab.classList.remove("active");
+
         loginForm.style.display = "block";
         signupForm.style.display = "none";
     } else {
         signupTab.classList.add("active");
         loginTab.classList.remove("active");
+
         signupForm.style.display = "block";
         loginForm.style.display = "none";
     }
 }
 
-// Pass the button itself in (onclick="togglePassword(this)") rather than
-// relying on the global window.event, which isn't reliable across browsers.
+
+/*
+ * Show / hide Login password.
+ */
 function togglePassword(button) {
     const input = document.getElementById("passwordInput");
-    if (!input || !button) return;
+
+    if (!input || !button) {
+        return;
+    }
+
     const showing = input.type === "text";
+
     input.type = showing ? "password" : "text";
     button.textContent = showing ? "Show" : "Hide";
 }
 
+
+/*
+ * Show / hide Sign Up password.
+ */
 function toggleSignupPassword(button) {
     const input = document.getElementById("signupPasswordInput");
-    if (!input || !button) return;
+
+    if (!input || !button) {
+        return;
+    }
+
     const showing = input.type === "text";
+
     input.type = showing ? "password" : "text";
     button.textContent = showing ? "Show" : "Hide";
 }
 
+
+/*
+ * IMPORTANT:
+ *
+ * PHP handles authentication.
+ *
+ * The OLD version was:
+ *
+ * function handleAuthSubmit(event) {
+ *     event.preventDefault();
+ *     window.location.href = "userprofile.php";
+ * }
+ *
+ * That was causing the problem because JavaScript stopped the form
+ * from being submitted to login.php/signup.php.
+ *
+ * This function now allows the normal form submission to continue.
+ *
+ * You can also remove this function completely if you remove
+ * onsubmit="handleAuthSubmit(event)" from auth.php.
+ */
 function handleAuthSubmit(event) {
-    event.preventDefault();
-    window.location.href = "userprofile.php";
+    return true;
 }
 
-/* -------------------------------------------------------------------
-   Home page (home.php)
-   ------------------------------------------------------------------- */
+
+/* ===================================================================
+   HOME PAGE
+   =================================================================== */
 
 function initHomePage() {
     const grid = document.querySelector("#featured-grid");
-    if (!grid) return; // not on this page
 
-    const featuredIds = ["barasoain-church", "mount-manalmon", "krus-sa-wawa"];
+    if (!grid) {
+        return;
+    }
+
+    const featuredIds = [
+        "barasoain-church",
+        "mount-manalmon",
+        "krus-sa-wawa"
+    ];
+
     const favorites = readFavorites();
 
     grid.innerHTML = featuredIds.map((id, index) => {
         const place = findDestination(id);
-        if (!place) return "";
+
+        if (!place) {
+            return "";
+        }
+
         const { rating, reviews } = ratingFor(place);
         const isFavorite = favorites.includes(place.id);
-        return `<article class="destination-card" style="animation-delay:${index * .06}s">
-      <a class="card-media image-frame" href="destination.php?place=${encodeURIComponent(place.id)}#places" aria-label="View ${escapeHtml(place.name)}">
-        <img src="${escapeHtml(place.imageUrl || "")}" alt="${escapeHtml(place.name)} in ${escapeHtml(place.municipality)}" loading="lazy" />
-        <span class="image-fallback" aria-hidden="true">◉</span>
-        <span class="card-badge category-label">${escapeHtml(place.category)}</span>
-        <span class="card-badge rating-badge"><span class="star" aria-hidden="true">★</span> ${rating}</span>
-      </a>
-      <div class="card-content">
-        <div class="place-municipality"><span aria-hidden="true">⌖</span> ${escapeHtml(place.municipality)}</div>
-        <div class="card-copy">
-          <h3>${escapeHtml(place.name)}</h3>
-          <div class="card-stars"><span aria-hidden="true">${starString(rating)}</span> <span class="count">(${reviews} reviews)</span></div>
-          <p>${escapeHtml(place.description)}</p>
-        </div>
-        <a class="read-note" href="destination.php?place=${encodeURIComponent(place.id)}#places">Read more &amp; reviews <span aria-hidden="true">↗</span></a>
-      </div>
-    </article>`;
+
+        return `
+        <article class="destination-card" style="animation-delay:${index * .06}s">
+
+            <a
+                class="card-media image-frame"
+                href="destination.php?place=${encodeURIComponent(place.id)}#places"
+                aria-label="View ${escapeHtml(place.name)}"
+            >
+                <img
+                    src="${escapeHtml(place.imageUrl || "")}"
+                    alt="${escapeHtml(place.name)} in ${escapeHtml(place.municipality)}"
+                    loading="lazy"
+                />
+
+                <span class="image-fallback" aria-hidden="true">◉</span>
+
+                <span class="card-badge category-label">
+                    ${escapeHtml(place.category)}
+                </span>
+
+                <span class="card-badge rating-badge">
+                    <span class="star" aria-hidden="true">★</span>
+                    ${rating}
+                </span>
+            </a>
+
+            <div class="card-content">
+
+                <div class="place-municipality">
+                    <span aria-hidden="true">⌖</span>
+                    ${escapeHtml(place.municipality)}
+                </div>
+
+                <div class="card-copy">
+
+                    <h3>${escapeHtml(place.name)}</h3>
+
+                    <div class="card-stars">
+                        <span aria-hidden="true">
+                            ${starString(rating)}
+                        </span>
+
+                        <span class="count">
+                            (${reviews} reviews)
+                        </span>
+                    </div>
+
+                    <p>
+                        ${escapeHtml(place.description)}
+                    </p>
+
+                </div>
+
+                <a
+                    class="read-note"
+                    href="destination.php?place=${encodeURIComponent(place.id)}#places"
+                >
+                    Read more &amp; reviews
+                    <span aria-hidden="true">↗</span>
+                </a>
+
+            </div>
+
+        </article>`;
     }).join("");
 
     wireImageFallbacks();
     updateCounts();
 }
 
-/* -------------------------------------------------------------------
-   Destination index (destination.php)
-   ------------------------------------------------------------------- */
+
+/* ===================================================================
+   DESTINATION PAGE
+   =================================================================== */
 
 function initDestinationPage() {
     const grid = document.querySelector("#destination-grid");
-    if (!grid) return; // not on this page
 
-    const municipalities = ["All municipalities", ...new Set(destinations.map((place) => place.municipality))];
-    const categories = ["All moods", ...new Set(destinations.map((place) => place.category))];
+    if (!grid) {
+        return;
+    }
+
+    const municipalities = [
+        "All municipalities",
+        ...new Set(destinations.map((place) => place.municipality))
+    ];
+
+    const categories = [
+        "All moods",
+        ...new Set(destinations.map((place) => place.category))
+    ];
 
     const state = {
         query: "",
@@ -221,18 +378,26 @@ function initDestinationPage() {
 
     function readReviews() {
         try {
-            return JSON.parse(localStorage.getItem("travelbuddies-reviews") || "{}");
+            return JSON.parse(
+                localStorage.getItem("travelbuddies-reviews") || "{}"
+            );
         } catch {
             return {};
         }
     }
 
     function writeReviews() {
-        localStorage.setItem("travelbuddies-reviews", JSON.stringify(state.reviews));
+        localStorage.setItem(
+            "travelbuddies-reviews",
+            JSON.stringify(state.reviews)
+        );
     }
 
     function getReviewsFor(placeId) {
-        if (state.reviews[placeId]) return state.reviews[placeId];
+        if (state.reviews[placeId]) {
+            return state.reviews[placeId];
+        }
+
         return seedReviews[placeId] || [];
     }
 
@@ -269,70 +434,266 @@ function initDestinationPage() {
     };
 
     function writeFavorites() {
-        localStorage.setItem("travelbuddies-favorites", JSON.stringify(state.favorites));
+        localStorage.setItem(
+            "travelbuddies-favorites",
+            JSON.stringify(state.favorites)
+        );
     }
 
     function populateFilters() {
-        elements.municipality.innerHTML = municipalities.map((town) => `<option>${escapeHtml(town)}</option>`).join("");
-        elements.category.innerHTML = categories.map((item) => `<option>${escapeHtml(item)}</option>`).join("");
-        elements.chips.innerHTML = categories.slice(1).map((item) => `<button class="filter-chip ${state.category === item ? "is-active" : ""}" type="button" data-category="${escapeHtml(item)}">${escapeHtml(item)}</button>`).join("");
+        elements.municipality.innerHTML = municipalities
+            .map(
+                (town) =>
+                    `<option>${escapeHtml(town)}</option>`
+            )
+            .join("");
+
+        elements.category.innerHTML = categories
+            .map(
+                (item) =>
+                    `<option>${escapeHtml(item)}</option>`
+            )
+            .join("");
+
+        elements.chips.innerHTML = categories
+            .slice(1)
+            .map(
+                (item) => `
+                    <button
+                        class="filter-chip ${
+                            state.category === item ? "is-active" : ""
+                        }"
+                        type="button"
+                        data-category="${escapeHtml(item)}"
+                    >
+                        ${escapeHtml(item)}
+                    </button>
+                `
+            )
+            .join("");
     }
 
     function getVisibleDestinations() {
         const normalized = state.query.trim().toLowerCase();
+
         return destinations.filter((place) => {
-            const matchesQuery = !normalized || [place.name, place.municipality, place.description, place.category].join(" ").toLowerCase().includes(normalized);
-            const matchesMunicipality = state.municipality === municipalities[0] || place.municipality === state.municipality;
-            const matchesCategory = state.category === categories[0] || place.category === state.category;
-            const matchesSaved = !state.showSaved || state.favorites.includes(place.id);
-            return matchesQuery && matchesMunicipality && matchesCategory && matchesSaved;
+
+            const matchesQuery =
+                !normalized ||
+                [
+                    place.name,
+                    place.municipality,
+                    place.description,
+                    place.category
+                ]
+                    .join(" ")
+                    .toLowerCase()
+                    .includes(normalized);
+
+            const matchesMunicipality =
+                state.municipality === municipalities[0] ||
+                place.municipality === state.municipality;
+
+            const matchesCategory =
+                state.category === categories[0] ||
+                place.category === state.category;
+
+            const matchesSaved =
+                !state.showSaved ||
+                state.favorites.includes(place.id);
+
+            return (
+                matchesQuery &&
+                matchesMunicipality &&
+                matchesCategory &&
+                matchesSaved
+            );
         });
     }
 
     function renderCards() {
         const visible = getVisibleDestinations();
-        elements.grid.innerHTML = visible.map((place, index) => {
-            const isFavorite = state.favorites.includes(place.id);
-            const { rating, reviews } = ratingFor(place);
-            return `<article class="destination-card" style="animation-delay:${Math.min(index * .035, .45)}s">
-      <div class="card-media image-frame">
-        <img src="${escapeHtml(place.imageUrl || "")}" alt="${escapeHtml(place.name)} in ${escapeHtml(place.municipality)}" loading="lazy" />
-        <span class="image-fallback" aria-hidden="true">◉</span>
-        <span class="card-badge category-label">${escapeHtml(place.category)}</span>
-        <span class="card-badge rating-badge"><span class="star" aria-hidden="true">★</span> ${rating}</span>
-        <button class="favorite-button ${isFavorite ? "is-favorite" : ""}" type="button" data-favorite="${place.id}" aria-label="${isFavorite ? "Remove" : "Save"} ${escapeHtml(place.name)}">${isFavorite ? "✓" : "♡"}</button>
-      </div>
-      <div class="card-content">
-        <div class="place-municipality"><span aria-hidden="true">⌖</span> ${escapeHtml(place.municipality)}</div>
-        <div class="card-copy">
-          <h3>${escapeHtml(place.name)}</h3>
-          <div class="card-stars"><span aria-hidden="true">${starString(rating)}</span> <span class="count">(${reviews} reviews)</span></div>
-          <p>${escapeHtml(place.description)}</p>
-        </div>
-        <div class="card-tags">
-          <span class="card-tag">${escapeHtml(place.category)}</span>
-          <span class="card-tag">${escapeHtml(place.tag || place.time || "")}</span>
-        </div>
-        <button class="read-note" type="button" data-open="${place.id}">View Details &amp; Reviews <span aria-hidden="true">↗</span></button>
-      </div>
-    </article>`;
-        }).join("");
-        elements.empty.classList.toggle("hidden", visible.length > 0);
-        elements.grid.classList.toggle("hidden", visible.length === 0);
-        const locationLabel = state.showSaved ? "your saved places" : state.municipality === municipalities[0] ? "all municipalities" : state.municipality;
-        elements.results.textContent = `${String(visible.length).padStart(2, "0")} entries / ${locationLabel}`;
-        elements.savedFilter.classList.toggle("is-active", state.showSaved);
-        elements.clear.classList.toggle("hidden", !(state.query || state.municipality !== municipalities[0] || state.category !== categories[0] || state.showSaved));
-        elements.chips.querySelectorAll("[data-category]").forEach((chip) => chip.classList.toggle("is-active", chip.dataset.category === state.category));
+
+        elements.grid.innerHTML = visible
+            .map((place, index) => {
+
+                const isFavorite =
+                    state.favorites.includes(place.id);
+
+                const { rating, reviews } =
+                    ratingFor(place);
+
+                return `
+                <article
+                    class="destination-card"
+                    style="animation-delay:${Math.min(
+                        index * .035,
+                        .45
+                    )}s"
+                >
+
+                    <div class="card-media image-frame">
+
+                        <img
+                            src="${escapeHtml(place.imageUrl || "")}"
+                            alt="${escapeHtml(place.name)} in ${escapeHtml(place.municipality)}"
+                            loading="lazy"
+                        />
+
+                        <span
+                            class="image-fallback"
+                            aria-hidden="true"
+                        >
+                            ◉
+                        </span>
+
+                        <span class="card-badge category-label">
+                            ${escapeHtml(place.category)}
+                        </span>
+
+                        <span class="card-badge rating-badge">
+                            <span class="star" aria-hidden="true">★</span>
+                            ${rating}
+                        </span>
+
+                        <button
+                            class="favorite-button ${
+                                isFavorite ? "is-favorite" : ""
+                            }"
+                            type="button"
+                            data-favorite="${place.id}"
+                            aria-label="${
+                                isFavorite ? "Remove" : "Save"
+                            } ${escapeHtml(place.name)}"
+                        >
+                            ${isFavorite ? "✓" : "♡"}
+                        </button>
+
+                    </div>
+
+                    <div class="card-content">
+
+                        <div class="place-municipality">
+                            <span aria-hidden="true">⌖</span>
+                            ${escapeHtml(place.municipality)}
+                        </div>
+
+                        <div class="card-copy">
+
+                            <h3>
+                                ${escapeHtml(place.name)}
+                            </h3>
+
+                            <div class="card-stars">
+                                <span aria-hidden="true">
+                                    ${starString(rating)}
+                                </span>
+
+                                <span class="count">
+                                    (${reviews} reviews)
+                                </span>
+                            </div>
+
+                            <p>
+                                ${escapeHtml(place.description)}
+                            </p>
+
+                        </div>
+
+                        <div class="card-tags">
+
+                            <span class="card-tag">
+                                ${escapeHtml(place.category)}
+                            </span>
+
+                            <span class="card-tag">
+                                ${escapeHtml(
+                                    place.tag ||
+                                    place.time ||
+                                    ""
+                                )}
+                            </span>
+
+                        </div>
+
+                        <button
+                            class="read-note"
+                            type="button"
+                            data-open="${place.id}"
+                        >
+                            View Details &amp; Reviews
+                            <span aria-hidden="true">↗</span>
+                        </button>
+
+                    </div>
+
+                </article>`;
+            })
+            .join("");
+
+        elements.empty.classList.toggle(
+            "hidden",
+            visible.length > 0
+        );
+
+        elements.grid.classList.toggle(
+            "hidden",
+            visible.length === 0
+        );
+
+        const locationLabel = state.showSaved
+            ? "your saved places"
+            : state.municipality === municipalities[0]
+                ? "all municipalities"
+                : state.municipality;
+
+        elements.results.textContent =
+            `${String(visible.length).padStart(2, "0")} entries / ${locationLabel}`;
+
+        elements.savedFilter.classList.toggle(
+            "is-active",
+            state.showSaved
+        );
+
+        elements.clear.classList.toggle(
+            "hidden",
+            !(
+                state.query ||
+                state.municipality !== municipalities[0] ||
+                state.category !== categories[0] ||
+                state.showSaved
+            )
+        );
+
+        elements.chips
+            .querySelectorAll("[data-category]")
+            .forEach((chip) => {
+                chip.classList.toggle(
+                    "is-active",
+                    chip.dataset.category === state.category
+                );
+            });
+
         updateCounts();
         wireImageFallbacks();
     }
 
     function toggleFavorite(id) {
-        state.favorites = state.favorites.includes(id) ? state.favorites.filter((item) => item !== id) : [...state.favorites, id];
+        state.favorites = state.favorites.includes(id)
+            ? state.favorites.filter(
+                (item) => item !== id
+            )
+            : [...state.favorites, id];
+
         writeFavorites();
         renderCards();
-        if (state.selected && state.selected.id === id) renderModal(state.selected);
+
+        if (
+            state.selected &&
+            state.selected.id === id
+        ) {
+            renderModal(state.selected);
+        }
     }
 
     function clearFilters() {
@@ -340,64 +701,158 @@ function initDestinationPage() {
         state.municipality = municipalities[0];
         state.category = categories[0];
         state.showSaved = false;
+
         elements.search.value = "";
-        elements.municipality.value = state.municipality;
-        elements.category.value = state.category;
+        elements.municipality.value =
+            state.municipality;
+        elements.category.value =
+            state.category;
+
         populateFilters();
         renderCards();
     }
 
     function renderStarInput() {
-        if (!elements.starInput) return;
-        elements.starInput.innerHTML = [1, 2, 3, 4, 5].map((value) => `<span class="star ${value <= state.reviewRating ? "is-active" : ""}" data-star="${value}" role="radio" aria-checked="${value === state.reviewRating}" tabindex="0">★</span>`).join("");
+        if (!elements.starInput) {
+            return;
+        }
+
+        elements.starInput.innerHTML =
+            [1, 2, 3, 4, 5]
+                .map(
+                    (value) => `
+                    <span
+                        class="star ${
+                            value <= state.reviewRating
+                                ? "is-active"
+                                : ""
+                        }"
+                        data-star="${value}"
+                        role="radio"
+                        aria-checked="${
+                            value === state.reviewRating
+                        }"
+                        tabindex="0"
+                    >
+                        ★
+                    </span>
+                `
+                )
+                .join("");
     }
 
     function resetReviewForm() {
         state.reviewRating = 5;
-        if (elements.reviewText) elements.reviewText.value = "";
-        if (elements.reviewForm) elements.reviewForm.classList.add("hidden");
+
+        if (elements.reviewText) {
+            elements.reviewText.value = "";
+        }
+
+        if (elements.reviewForm) {
+            elements.reviewForm.classList.add("hidden");
+        }
+
         renderStarInput();
     }
 
     function renderReviews(place) {
-        if (!elements.reviewList) return;
-        const list = getReviewsFor(place.id);
-        if (list.length === 0) {
-            elements.reviewList.innerHTML = `<p class="review-empty">No reviews yet — be the first to share your experience.</p>`;
+        if (!elements.reviewList) {
             return;
         }
-        elements.reviewList.innerHTML = list.map((review) => `<article class="review-card">
-      <div class="review-top">
-        <div class="review-who">
-          <span class="review-avatar">${escapeHtml(review.initials)}</span>
-          <div>
-            <div class="review-name">${escapeHtml(review.name)}</div>
-            <div class="review-date">${escapeHtml(review.date)}</div>
-          </div>
-        </div>
-        <div class="review-stars" aria-hidden="true">${starString(review.rating)}</div>
-      </div>
-      <p class="review-text">${escapeHtml(review.text)}</p>
-    </article>`).join("");
+
+        const list = getReviewsFor(place.id);
+
+        if (list.length === 0) {
+            elements.reviewList.innerHTML = `
+                <p class="review-empty">
+                    No reviews yet — be the first to share your experience.
+                </p>
+            `;
+
+            return;
+        }
+
+        elements.reviewList.innerHTML = list
+            .map(
+                (review) => `
+                <article class="review-card">
+
+                    <div class="review-top">
+
+                        <div class="review-who">
+
+                            <span class="review-avatar">
+                                ${escapeHtml(review.initials)}
+                            </span>
+
+                            <div>
+
+                                <div class="review-name">
+                                    ${escapeHtml(review.name)}
+                                </div>
+
+                                <div class="review-date">
+                                    ${escapeHtml(review.date)}
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="review-stars"
+                            aria-hidden="true"
+                        >
+                            ${starString(review.rating)}
+                        </div>
+
+                    </div>
+
+                    <p class="review-text">
+                        ${escapeHtml(review.text)}
+                    </p>
+
+                </article>
+            `
+            )
+            .join("");
     }
 
     function submitReview() {
-        if (!state.selected) return;
-        const text = (elements.reviewText?.value || "").trim();
+        if (!state.selected) {
+            return;
+        }
+
+        const text =
+            (elements.reviewText?.value || "").trim();
+
         if (!text) {
             elements.reviewText?.focus();
             return;
         }
+
         const placeId = state.selected.id;
-        const existing = state.reviews[placeId] ? state.reviews[placeId] : [...getReviewsFor(placeId)];
+
+        const existing = state.reviews[placeId]
+            ? state.reviews[placeId]
+            : [...getReviewsFor(placeId)];
+
         existing.unshift({
             name: "You",
             initials: "YO",
-            date: new Date().toLocaleDateString(undefined, { month: "long", year: "numeric" }),
+            date: new Date().toLocaleDateString(
+                undefined,
+                {
+                    month: "long",
+                    year: "numeric"
+                }
+            ),
             rating: state.reviewRating,
             text
         });
+
         state.reviews[placeId] = existing;
+
         writeReviews();
         renderReviews(state.selected);
         resetReviewForm();
@@ -405,283 +860,836 @@ function initDestinationPage() {
 
     function renderModal(place) {
         state.selected = place;
-        const { rating, reviews } = ratingFor(place);
-        elements.modalImage.src = place.imageUrl || "";
-        elements.modalImage.alt = `${place.name} in ${place.municipality}`;
-        elements.modalKicker.textContent = `${place.category} / ${place.tag || ""}`;
-        elements.modalTitle.textContent = place.name;
-        elements.modalMunicipality.textContent = place.municipality;
+
+        const { rating, reviews } =
+            ratingFor(place);
+
+        elements.modalImage.src =
+            place.imageUrl || "";
+
+        elements.modalImage.alt =
+            `${place.name} in ${place.municipality}`;
+
+        elements.modalKicker.textContent =
+            `${place.category} / ${place.tag || ""}`;
+
+        elements.modalTitle.textContent =
+            place.name;
+
+        elements.modalMunicipality.textContent =
+            place.municipality;
+
         if (elements.modalRating) {
-            elements.modalRating.innerHTML = `<span aria-hidden="true">${starString(rating)}</span> <span class="count">${rating} (${reviews} reviews)</span>`;
+            elements.modalRating.innerHTML = `
+                <span aria-hidden="true">
+                    ${starString(rating)}
+                </span>
+
+                <span class="count">
+                    ${rating} (${reviews} reviews)
+                </span>
+            `;
         }
-        elements.modalDescription.textContent = place.description;
+
+        elements.modalDescription.textContent =
+            place.description;
+
         if (elements.modalTags) {
-            elements.modalTags.innerHTML = `<span class="card-tag">${escapeHtml(place.category)}</span><span class="card-tag">${escapeHtml(place.tag || place.time || "")}</span>`;
+            elements.modalTags.innerHTML = `
+                <span class="card-tag">
+                    ${escapeHtml(place.category)}
+                </span>
+
+                <span class="card-tag">
+                    ${escapeHtml(
+                        place.tag ||
+                        place.time ||
+                        ""
+                    )}
+                </span>
+            `;
         }
-        elements.modalLocation.textContent = place.location;
-        elements.modalTime.textContent = place.time || "";
-        const isFavorite = state.favorites.includes(place.id);
-        elements.modalFavorite.innerHTML = `${isFavorite ? "✓" : "♡"} ${isFavorite ? "Saved to your route" : "Save this place"}`;
-        elements.shareLabel.textContent = "Share the note";
+
+        elements.modalLocation.textContent =
+            place.location;
+
+        elements.modalTime.textContent =
+            place.time || "";
+
+        const isFavorite =
+            state.favorites.includes(place.id);
+
+        elements.modalFavorite.innerHTML = `
+            ${isFavorite ? "✓" : "♡"}
+            ${
+                isFavorite
+                    ? "Saved to your route"
+                    : "Save this place"
+            }
+        `;
+
+        elements.shareLabel.textContent =
+            "Share the note";
+
         resetReviewForm();
         renderReviews(place);
+
         elements.modal.classList.remove("hidden");
-        document.body.style.overflow = "hidden";
-        elements.modalImage.parentElement.classList.remove("has-failed");
-        elements.modalImage.addEventListener("error", () => elements.modalImage.parentElement.classList.add("has-failed"), { once: true });
+
+        document.body.style.overflow =
+            "hidden";
+
+        elements.modalImage.parentElement
+            .classList.remove("has-failed");
+
+        elements.modalImage.addEventListener(
+            "error",
+            () =>
+                elements.modalImage.parentElement
+                    .classList.add("has-failed"),
+            {
+                once: true
+            }
+        );
     }
 
     function closeModal() {
         state.selected = null;
+
         elements.modal.classList.add("hidden");
+
         document.body.style.overflow = "";
-        // Drop any ?place= deep link once the visitor closes the modal so a
-        // refresh or reshare doesn't reopen it unexpectedly.
-        if (window.location.search.includes("place=")) {
-            const url = new URL(window.location.href);
+
+        if (
+            window.location.search.includes(
+                "place="
+            )
+        ) {
+            const url =
+                new URL(window.location.href);
+
             url.searchParams.delete("place");
-            window.history.replaceState({}, "", url.pathname + url.hash);
+
+            window.history.replaceState(
+                {},
+                "",
+                url.pathname + url.hash
+            );
         }
     }
 
     function sharePlace(place) {
-        const shareText = `${place.name} in ${place.municipality} — TravelBuddies Bulacan`;
+        const shareText =
+            `${place.name} in ${place.municipality} — TravelBuddies Bulacan`;
+
         const finish = () => {
-            elements.shareLabel.textContent = "Copied to clipboard";
+            elements.shareLabel.textContent =
+                "Copied to clipboard";
+
             window.setTimeout(() => {
-                if (!state.selected) return;
-                elements.shareLabel.textContent = "Share the note";
+                if (!state.selected) {
+                    return;
+                }
+
+                elements.shareLabel.textContent =
+                    "Share the note";
             }, 2200);
         };
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(shareText).then(finish).catch(finish);
+
+        if (
+            navigator.clipboard &&
+            navigator.clipboard.writeText
+        ) {
+            navigator.clipboard
+                .writeText(shareText)
+                .then(finish)
+                .catch(finish);
         } else {
             finish();
         }
     }
 
-    elements.search.addEventListener("input", (event) => {
-        state.query = event.target.value;
-        renderCards();
-    });
-    elements.municipality.addEventListener("change", (event) => {
-        state.municipality = event.target.value;
-        renderCards();
-    });
-    elements.category.addEventListener("change", (event) => {
-        state.category = event.target.value;
-        populateFilters();
-        elements.municipality.value = state.municipality;
-        elements.category.value = state.category;
-        renderCards();
-    });
-    elements.chips.addEventListener("click", (event) => {
-        const chip = event.target.closest("[data-category]");
-        if (!chip) return;
-        state.category = state.category === chip.dataset.category ? categories[0] : chip.dataset.category;
-        elements.category.value = state.category;
-        populateFilters();
-        elements.municipality.value = state.municipality;
-        elements.category.value = state.category;
-        renderCards();
-    });
-    elements.savedFilter.addEventListener("click", () => {
-        state.showSaved = !state.showSaved;
-        renderCards();
-    });
-    document.querySelectorAll("#nav-saved, #mobile-saved").forEach((button) => {
-        button.addEventListener("click", () => {
-            state.showSaved = !state.showSaved;
-            document.querySelector("#places")?.scrollIntoView({ behavior: "smooth" });
+    /* ---------------------------------------------------------------
+       Destination event listeners
+       --------------------------------------------------------------- */
+
+    elements.search.addEventListener(
+        "input",
+        (event) => {
+            state.query =
+                event.target.value;
+
             renderCards();
-        });
-    });
-    elements.clear.addEventListener("click", clearFilters);
-    document.querySelector("#empty-clear")?.addEventListener("click", clearFilters);
-    document.querySelector("#brand-home")?.addEventListener("click", clearFilters);
-    elements.grid.addEventListener("click", (event) => {
-        const favorite = event.target.closest("[data-favorite]");
-        const opener = event.target.closest("[data-open]");
-        if (favorite) toggleFavorite(favorite.dataset.favorite);
-        if (opener) renderModal(destinations.find((place) => place.id === opener.dataset.open));
-    });
-    document.querySelector("#close-modal")?.addEventListener("click", closeModal);
-    elements.modal?.addEventListener("mousedown", (event) => {
-        if (event.target === elements.modal) closeModal();
-    });
-    document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape" && elements.modal && !elements.modal.classList.contains("hidden")) closeModal();
-    });
-    elements.modalFavorite?.addEventListener("click", () => {
-        if (state.selected) toggleFavorite(state.selected.id);
-    });
-    elements.modalShare?.addEventListener("click", () => {
-        if (state.selected) sharePlace(state.selected);
-    });
-    elements.writeReviewBtn?.addEventListener("click", () => {
-        elements.reviewForm?.classList.toggle("hidden");
-        if (elements.reviewForm && !elements.reviewForm.classList.contains("hidden")) {
-            elements.reviewText?.focus();
         }
-    });
-    elements.cancelReviewBtn?.addEventListener("click", resetReviewForm);
-    elements.submitReviewBtn?.addEventListener("click", submitReview);
-    elements.starInput?.addEventListener("click", (event) => {
-        const star = event.target.closest("[data-star]");
-        if (!star) return;
-        state.reviewRating = Number(star.dataset.star);
-        renderStarInput();
-    });
-    document.querySelector("#hero-image")?.addEventListener("error", (event) => {
-        event.target.parentElement.classList.add("has-failed");
-    });
+    );
+
+    elements.municipality.addEventListener(
+        "change",
+        (event) => {
+            state.municipality =
+                event.target.value;
+
+            renderCards();
+        }
+    );
+
+    elements.category.addEventListener(
+        "change",
+        (event) => {
+            state.category =
+                event.target.value;
+
+            populateFilters();
+
+            elements.municipality.value =
+                state.municipality;
+
+            elements.category.value =
+                state.category;
+
+            renderCards();
+        }
+    );
+
+    elements.chips.addEventListener(
+        "click",
+        (event) => {
+            const chip =
+                event.target.closest(
+                    "[data-category]"
+                );
+
+            if (!chip) {
+                return;
+            }
+
+            state.category =
+                state.category ===
+                chip.dataset.category
+                    ? categories[0]
+                    : chip.dataset.category;
+
+            elements.category.value =
+                state.category;
+
+            populateFilters();
+
+            elements.municipality.value =
+                state.municipality;
+
+            elements.category.value =
+                state.category;
+
+            renderCards();
+        }
+    );
+
+    elements.savedFilter.addEventListener(
+        "click",
+        () => {
+            state.showSaved =
+                !state.showSaved;
+
+            renderCards();
+        }
+    );
+
+    document
+        .querySelectorAll(
+            "#nav-saved, #mobile-saved"
+        )
+        .forEach((button) => {
+            button.addEventListener(
+                "click",
+                () => {
+                    state.showSaved =
+                        !state.showSaved;
+
+                    document
+                        .querySelector("#places")
+                        ?.scrollIntoView({
+                            behavior: "smooth"
+                        });
+
+                    renderCards();
+                }
+            );
+        });
+
+    elements.clear.addEventListener(
+        "click",
+        clearFilters
+    );
+
+    document
+        .querySelector("#empty-clear")
+        ?.addEventListener(
+            "click",
+            clearFilters
+        );
+
+    document
+        .querySelector("#brand-home")
+        ?.addEventListener(
+            "click",
+            clearFilters
+        );
+
+    elements.grid.addEventListener(
+        "click",
+        (event) => {
+            const favorite =
+                event.target.closest(
+                    "[data-favorite]"
+                );
+
+            const opener =
+                event.target.closest(
+                    "[data-open]"
+                );
+
+            if (favorite) {
+                toggleFavorite(
+                    favorite.dataset.favorite
+                );
+            }
+
+            if (opener) {
+                renderModal(
+                    destinations.find(
+                        (place) =>
+                            place.id ===
+                            opener.dataset.open
+                    )
+                );
+            }
+        }
+    );
+
+    document
+        .querySelector("#close-modal")
+        ?.addEventListener(
+            "click",
+            closeModal
+        );
+
+    elements.modal?.addEventListener(
+        "mousedown",
+        (event) => {
+            if (
+                event.target ===
+                elements.modal
+            ) {
+                closeModal();
+            }
+        }
+    );
+
+    document.addEventListener(
+        "keydown",
+        (event) => {
+            if (
+                event.key === "Escape" &&
+                elements.modal &&
+                !elements.modal.classList.contains(
+                    "hidden"
+                )
+            ) {
+                closeModal();
+            }
+        }
+    );
+
+    elements.modalFavorite?.addEventListener(
+        "click",
+        () => {
+            if (state.selected) {
+                toggleFavorite(
+                    state.selected.id
+                );
+            }
+        }
+    );
+
+    elements.modalShare?.addEventListener(
+        "click",
+        () => {
+            if (state.selected) {
+                sharePlace(
+                    state.selected
+                );
+            }
+        }
+    );
+
+    elements.writeReviewBtn?.addEventListener(
+        "click",
+        () => {
+            elements.reviewForm
+                ?.classList.toggle(
+                    "hidden"
+                );
+
+            if (
+                elements.reviewForm &&
+                !elements.reviewForm.classList.contains(
+                    "hidden"
+                )
+            ) {
+                elements.reviewText?.focus();
+            }
+        }
+    );
+
+    elements.cancelReviewBtn?.addEventListener(
+        "click",
+        resetReviewForm
+    );
+
+    elements.submitReviewBtn?.addEventListener(
+        "click",
+        submitReview
+    );
+
+    elements.starInput?.addEventListener(
+        "click",
+        (event) => {
+            const star =
+                event.target.closest(
+                    "[data-star]"
+                );
+
+            if (!star) {
+                return;
+            }
+
+            state.reviewRating =
+                Number(star.dataset.star);
+
+            renderStarInput();
+        }
+    );
+
+    document
+        .querySelector("#hero-image")
+        ?.addEventListener(
+            "error",
+            (event) => {
+                event.target.parentElement
+                    .classList.add(
+                        "has-failed"
+                    );
+            }
+        );
+
+    /* ---------------------------------------------------------------
+       Initial destination page setup
+       --------------------------------------------------------------- */
 
     populateFilters();
-    elements.municipality.value = state.municipality;
-    elements.category.value = state.category;
+
+    elements.municipality.value =
+        state.municipality;
+
+    elements.category.value =
+        state.category;
+
     renderCards();
 
-    // Deep link support: a card on home.php (or the festival banner) can
-    // link to destination.php?place=<id> and land straight on that place's
-    // detail modal, already scrolled into view.
-    const requestedId = new URLSearchParams(window.location.search).get("place");
+    /*
+     * Deep link support:
+     *
+     * destination.php?place=<id>
+     */
+    const requestedId =
+        new URLSearchParams(
+            window.location.search
+        ).get("place");
+
     if (requestedId) {
-        const requestedPlace = destinations.find((place) => place.id === requestedId);
+        const requestedPlace =
+            destinations.find(
+                (place) =>
+                    place.id ===
+                    requestedId
+            );
+
         if (requestedPlace) {
-            document.querySelector("#places")?.scrollIntoView({ behavior: "instant" in window ? "instant" : "auto" });
-            renderModal(requestedPlace);
+            document
+                .querySelector("#places")
+                ?.scrollIntoView({
+                    behavior:
+                        "instant" in window
+                            ? "instant"
+                            : "auto"
+                });
+
+            renderModal(
+                requestedPlace
+            );
         }
     }
 }
 
-/* -------------------------------------------------------------------
-   Shared favorites read + saved-count badge
-   Used by both the home page (read-only preview) and the full guide
-   (read/write via toggleFavorite).
-   ------------------------------------------------------------------- */
+
+/* ===================================================================
+   SHARED FAVORITES
+   =================================================================== */
 
 function readFavorites() {
     try {
-        return JSON.parse(localStorage.getItem("travelbuddies-favorites") || "[]");
+        return JSON.parse(
+            localStorage.getItem(
+                "travelbuddies-favorites"
+            ) || "[]"
+        );
     } catch {
         return [];
     }
 }
 
+
 function wireImageFallbacks() {
-    document.querySelectorAll(".image-frame img").forEach((img) => {
-        img.addEventListener("error", () => {
-            img.parentElement.classList.add("has-failed");
-        }, { once: true });
-    });
+    document
+        .querySelectorAll(
+            ".image-frame img"
+        )
+        .forEach((img) => {
+            img.addEventListener(
+                "error",
+                () => {
+                    img.parentElement.classList.add(
+                        "has-failed"
+                    );
+                },
+                {
+                    once: true
+                }
+            );
+        });
 }
+
 
 function updateCounts() {
-    const count = readFavorites().length;
-    const navCount = document.querySelector("#nav-saved-count");
-    const mobileCount = document.querySelector("#mobile-saved-count");
-    if (navCount) navCount.textContent = count;
-    if (mobileCount) mobileCount.textContent = count;
-}
+    const count =
+        readFavorites().length;
 
-/* -------------------------------------------------------------------
-   Profile page (userprofile.php)
-   ------------------------------------------------------------------- */
+    const navCount =
+        document.querySelector(
+            "#nav-saved-count"
+        );
 
-function switchProfileTab(tab) {
-    const tabButton = document.getElementById("tab-" + tab);
-    const panel = document.getElementById("panel-" + tab);
-    if (!tabButton || !panel) return;
-    document.querySelectorAll(".profile-tab-btn").forEach((btn) => btn.classList.remove("active"));
-    document.querySelectorAll(".profile-panel").forEach((p) => p.classList.remove("active"));
-    tabButton.classList.add("active");
-    panel.classList.add("active");
-}
+    const mobileCount =
+        document.querySelector(
+            "#mobile-saved-count"
+        );
 
-function toggleEditMode() {
-    const tabsSection = document.getElementById("tabsSection");
-    const editSection = document.getElementById("editBioSection");
-    const editBtn = document.getElementById("editToggleBtn");
-    if (!tabsSection || !editSection || !editBtn) return;
-    const isEditing = editSection.style.display !== "none";
+    if (navCount) {
+        navCount.textContent =
+            count;
+    }
 
-    if (isEditing) {
-        tabsSection.style.display = "block";
-        editSection.style.display = "none";
-        editBtn.textContent = "Edit Profile";
-    } else {
-        tabsSection.style.display = "none";
-        editSection.style.display = "block";
-        editBtn.textContent = "Cancel";
+    if (mobileCount) {
+        mobileCount.textContent =
+            count;
     }
 }
 
+
+/* ===================================================================
+   PROFILE PAGE
+   =================================================================== */
+
+function switchProfileTab(tab) {
+    const tabButton =
+        document.getElementById(
+            "tab-" + tab
+        );
+
+    const panel =
+        document.getElementById(
+            "panel-" + tab
+        );
+
+    if (!tabButton || !panel) {
+        return;
+    }
+
+    document
+        .querySelectorAll(
+            ".profile-tab-btn"
+        )
+        .forEach((btn) =>
+            btn.classList.remove(
+                "active"
+            )
+        );
+
+    document
+        .querySelectorAll(
+            ".profile-panel"
+        )
+        .forEach((p) =>
+            p.classList.remove(
+                "active"
+            )
+        );
+
+    tabButton.classList.add(
+        "active"
+    );
+
+    panel.classList.add(
+        "active"
+    );
+}
+
+
+function toggleEditMode() {
+    const tabsSection =
+        document.getElementById(
+            "tabsSection"
+        );
+
+    const editSection =
+        document.getElementById(
+            "editBioSection"
+        );
+
+    const editBtn =
+        document.getElementById(
+            "editToggleBtn"
+        );
+
+    if (
+        !tabsSection ||
+        !editSection ||
+        !editBtn
+    ) {
+        return;
+    }
+
+    const isEditing =
+        editSection.style.display !==
+        "none";
+
+    if (isEditing) {
+        tabsSection.style.display =
+            "block";
+
+        editSection.style.display =
+            "none";
+
+        editBtn.textContent =
+            "Edit Profile";
+    } else {
+        tabsSection.style.display =
+            "none";
+
+        editSection.style.display =
+            "block";
+
+        editBtn.textContent =
+            "Cancel";
+    }
+}
+
+
 function saveBio() {
-    const textarea = document.getElementById("bioTextarea");
-    const display = document.getElementById("bioDisplay");
-    if (!textarea || !display) return;
-    display.textContent = textarea.value.trim();
+    const textarea =
+        document.getElementById(
+            "bioTextarea"
+        );
+
+    const display =
+        document.getElementById(
+            "bioDisplay"
+        );
+
+    if (!textarea || !display) {
+        return;
+    }
+
+    display.textContent =
+        textarea.value.trim();
+
     toggleEditMode();
 }
 
-function saveSettings() {
-    const name = document.getElementById("settingsName")?.value ?? "";
-    const email = document.getElementById("settingsEmail")?.value ?? "";
-    const location = document.getElementById("settingsLocation")?.value ?? "";
-    const newPassword = document.getElementById("settingsNewPassword")?.value ?? "";
-    const confirmPassword = document.getElementById("settingsConfirmPassword")?.value ?? "";
 
-    if (newPassword || confirmPassword) {
-        if (newPassword !== confirmPassword) {
-            alert("Passwords don't match. Please try again.");
+function saveSettings() {
+    const name =
+        document.getElementById(
+            "settingsName"
+        )?.value ?? "";
+
+    const email =
+        document.getElementById(
+            "settingsEmail"
+        )?.value ?? "";
+
+    const location =
+        document.getElementById(
+            "settingsLocation"
+        )?.value ?? "";
+
+    const newPassword =
+        document.getElementById(
+            "settingsNewPassword"
+        )?.value ?? "";
+
+    const confirmPassword =
+        document.getElementById(
+            "settingsConfirmPassword"
+        )?.value ?? "";
+
+    if (
+        newPassword ||
+        confirmPassword
+    ) {
+        if (
+            newPassword !==
+            confirmPassword
+        ) {
+            alert(
+                "Passwords don't match. Please try again."
+            );
+
             return;
         }
     }
 
-    const headerName = document.getElementById("headerName");
-    const headerEmail = document.getElementById("headerEmail");
-    const headerLocation = document.getElementById("headerLocation");
-    if (headerName) headerName.textContent = name;
-    if (headerEmail) headerEmail.textContent = email;
-    if (headerLocation) headerLocation.textContent = location;
+    const headerName =
+        document.getElementById(
+            "headerName"
+        );
 
-    const newPasswordField = document.getElementById("settingsNewPassword");
-    const confirmPasswordField = document.getElementById("settingsConfirmPassword");
-    if (newPasswordField) newPasswordField.value = "";
-    if (confirmPasswordField) confirmPasswordField.value = "";
+    const headerEmail =
+        document.getElementById(
+            "headerEmail"
+        );
 
-    const confirmMessage = document.getElementById("saveConfirm");
+    const headerLocation =
+        document.getElementById(
+            "headerLocation"
+        );
+
+    if (headerName) {
+        headerName.textContent =
+            name;
+    }
+
+    if (headerEmail) {
+        headerEmail.textContent =
+            email;
+    }
+
+    if (headerLocation) {
+        headerLocation.textContent =
+            location;
+    }
+
+    const newPasswordField =
+        document.getElementById(
+            "settingsNewPassword"
+        );
+
+    const confirmPasswordField =
+        document.getElementById(
+            "settingsConfirmPassword"
+        );
+
+    if (newPasswordField) {
+        newPasswordField.value =
+            "";
+    }
+
+    if (confirmPasswordField) {
+        confirmPasswordField.value =
+            "";
+    }
+
+    const confirmMessage =
+        document.getElementById(
+            "saveConfirm"
+        );
+
     if (confirmMessage) {
-        confirmMessage.classList.add("show");
-        window.setTimeout(() => confirmMessage.classList.remove("show"), 2500);
+        confirmMessage.classList.add(
+            "show"
+        );
+
+        window.setTimeout(
+            () =>
+                confirmMessage.classList.remove(
+                    "show"
+                ),
+            2500
+        );
     }
 }
 
+
+/*
+ * FIXED LOGOUT
+ *
+ * LogIn.php was removed.
+ * logout.php is now responsible for destroying the session.
+ */
 function logOut() {
-    window.location.href = "LogIn.php";
+    window.location.href =
+        "logout.php";
 }
 
+
 function previewPhoto(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (loadEvent) => {
-        const preview = document.getElementById("editAvatarPreview");
-        if (!preview) return;
-        preview.style.backgroundImage = `url(${loadEvent.target.result})`;
-        preview.style.backgroundSize = "cover";
-        preview.style.backgroundPosition = "center";
-        preview.textContent = "";
-    };
+    const file =
+        event.target.files[0];
+
+    if (!file) {
+        return;
+    }
+
+    const reader =
+        new FileReader();
+
+    reader.onload =
+        (loadEvent) => {
+            const preview =
+                document.getElementById(
+                    "editAvatarPreview"
+                );
+
+            if (!preview) {
+                return;
+            }
+
+            preview.style.backgroundImage =
+                `url(${loadEvent.target.result})`;
+
+            preview.style.backgroundSize =
+                "cover";
+
+            preview.style.backgroundPosition =
+                "center";
+
+            preview.textContent =
+                "";
+        };
+
     reader.readAsDataURL(file);
 }
 
-/* -------------------------------------------------------------------
-   Boot
-   ------------------------------------------------------------------- */
 
-document.addEventListener("DOMContentLoaded", () => {
-    initHomePage();
-    initDestinationPage();
-    updateCounts();
-});
+/* ===================================================================
+   BOOT
+   =================================================================== */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+        initHomePage();
+        initDestinationPage();
+        updateCounts();
+    }
+);

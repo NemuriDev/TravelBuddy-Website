@@ -1,25 +1,11 @@
 <?php
 require_once __DIR__ . '/config.php';
-?>
-<?php
 $activePage = 'home';
-$loggedIn   = false; // set true (and $userName) once you wire up real sessions
-?>
-<?php
-// Database connection
-$db = getDBConnection();
-
-// Check if user is logged in
-if (isLoggedIn()) {
-    $user = getCurrentUser();
-    echo 'Welcome, ' . $user['name'];
-}
-
-// Create a CSRF token for forms
+$loggedIn = isLoggedIn();
+$user = getCurrentUser();
 $csrf_token = generateCSRFToken();
 
-// Build URLs
-$link = url('destination.php');
+// No need for $db or $link unless they are used later
 ?>
 <!doctype html>
 <html lang="en">
@@ -41,6 +27,12 @@ $link = url('destination.php');
 <body>
     <main class="page-shell">
         <?php include __DIR__ . '/navbar.php'; ?>
+
+        <?php if ($loggedIn && $user): ?>
+            <div class="welcome-banner" style="background: #f0f7f4; padding: 10px 20px; text-align: center;">
+                Welcome, <?= htmlspecialchars($user['name']) ?>!
+            </div>
+        <?php endif; ?>
 
         <section class="hero-grid" aria-labelledby="hero-title">
             <div class="hero-copy reveal">
