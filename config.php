@@ -36,7 +36,7 @@ define('SITE_EMAIL', 'info@travelbuddy.com');
 define('DB_HOST', 'sql200.infinityfree.com');
 define('DB_NAME', 'if0_42856607_users');
 define('DB_USER', 'if0_42856607');
-define('DB_PASS', 'nUdO2ovrX2FD');
+define('DB_PASS', '');
 
 define('DB_CHARSET', 'utf8mb4');
 define('DB_COLLATION', 'utf8mb4_unicode_ci');
