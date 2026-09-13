@@ -28,12 +28,18 @@ $initials = $user ? ($user['initials'] ?? getUserInitials($userName)) : getUserI
         <div class="nav-links">
             <a href="home.php" class="<?= $activePage === 'home' ? 'active' : '' ?>">Home</a>
             <a href="destination.php#places" class="<?= $activePage === 'destination' ? 'active' : '' ?>">Places</a>
-            <a href="destination.php#about">Contact</a>
+            <a href="contact.php">Contact</a>
             <button id="nav-saved" type="button"><span class="heart-icon" aria-hidden="true"></span> Saved
                 <span class="saved-count" id="nav-saved-count">0</span></button>
             <?php if ($loggedIn && $user): ?>
                 <a class="nav-account" href="userprofile.php">
-                    <span class="nav-avatar"><?= htmlspecialchars($initials) ?></span>
+                    <span class="nav-avatar">
+                        <?php if (!empty($user['profile_photo'])): ?>
+                            <img src="<?= htmlspecialchars($user['profile_photo']) ?>" alt="" class="nav-avatar-image">
+                        <?php else: ?>
+                            <?= htmlspecialchars($initials) ?>
+                        <?php endif; ?>
+                    </span>
                     <span><?= htmlspecialchars(explode(' ', trim($userName))[0]) ?></span>
                 </a>
             <?php else: ?>
@@ -45,3 +51,14 @@ $initials = $user ? ($user['initials'] ?? getUserInitials($userName)) : getUserI
         </button>
     </div>
 </nav>
+<script>
+    // Defined here (once, in the shared navbar) instead of per-page, so
+    // every page that includes navbar.php — not just home.php — knows
+    // whether the visitor is logged in before script.js decides whether
+    // to sync favorites/reviews to the server.
+    window.APP_CONFIG = {
+        loggedIn: <?= $loggedIn ? 'true' : 'false' ?>,
+        isAdmin: <?= ($loggedIn && $user && ($user['role'] ?? '') === ROLE_ADMIN) ? 'true' : 'false' ?>,
+        csrfToken: <?= json_encode(generateCSRFToken()) ?>
+    };
+</script>

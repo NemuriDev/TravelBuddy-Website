@@ -13,6 +13,14 @@ if ($loggedIn) {
 
 // Check for error message from login attempt
 $error = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : '';
+
+// Which tab was active when the error happened, and what the visitor
+// had already typed — so a validation error doesn't wipe the form back
+// to blank. Password is never carried back, only re-typed by the user.
+$activeTab = (($_GET['tab'] ?? 'login') === 'signup') ? 'signup' : 'login';
+$oldEmail = htmlspecialchars($_GET['email'] ?? '');
+$oldName = htmlspecialchars($_GET['name'] ?? '');
+$oldLocation = htmlspecialchars($_GET['location'] ?? '');
 ?>
 <!doctype html>
 <html lang="en">
@@ -25,7 +33,7 @@ $error = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : '';
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap"
         rel="stylesheet" />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
     <main class="page-shell">
@@ -58,11 +66,11 @@ $error = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : '';
 
             <div class="auth-panel reveal" style="--delay: .1s">
                 <div class="auth-tabs">
-                    <button class="auth-tab active" id="loginTab" type="button" onclick="switchAuthTab('login')">Log In</button>
-                    <button class="auth-tab" id="signupTab" type="button" onclick="switchAuthTab('signup')">Sign Up</button>
+                    <button class="auth-tab <?= $activeTab === 'login' ? 'active' : '' ?>" id="loginTab" type="button" onclick="switchAuthTab('login')">Log In</button>
+                    <button class="auth-tab <?= $activeTab === 'signup' ? 'active' : '' ?>" id="signupTab" type="button" onclick="switchAuthTab('signup')">Sign Up</button>
                 </div>
 
-                <div id="loginForm">
+                <div id="loginForm" <?= $activeTab === 'signup' ? 'style="display: none"' : '' ?>>
                     <h2>Welcome back!</h2>
                     <p class="auth-subtitle">Log in to save places, write reviews, and plan your visits.</p>
 
@@ -71,7 +79,7 @@ $error = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : '';
                         <div class="field">
                             <label>Email Address <span class="req">*</span></label>
                             <div class="input-wrap">
-                                <input type="email" name="email" placeholder="juan@email.com" required />
+                                <input type="email" name="email" value="<?= $activeTab === 'login' ? $oldEmail : '' ?>" placeholder="juan@email.com" required />
                             </div>
                         </div>
 
@@ -88,7 +96,7 @@ $error = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : '';
                     
                 </div>
 
-                <div id="signupForm" style="display: none">
+                <div id="signupForm" <?= $activeTab === 'signup' ? '' : 'style="display: none"' ?>>
                     <h2>Create your account</h2>
                     <p class="auth-subtitle">Sign up to save places, write reviews, and plan your visits.</p>
 
@@ -97,14 +105,14 @@ $error = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : '';
                         <div class="field">
                             <label>Full Name <span class="req">*</span></label>
                             <div class="input-wrap">
-                                <input type="text" name="name" placeholder="Juan Dela Cruz" required />
+                                <input type="text" name="name" value="<?= $activeTab === 'signup' ? $oldName : '' ?>" placeholder="Juan Dela Cruz" required />
                             </div>
                         </div>
 
                         <div class="field">
                             <label>Email Address <span class="req">*</span></label>
                             <div class="input-wrap">
-                                <input type="email" name="email" placeholder="juan@email.com" required />
+                                <input type="email" name="email" value="<?= $activeTab === 'signup' ? $oldEmail : '' ?>" placeholder="juan@email.com" required />
                             </div>
                         </div>
 
@@ -119,7 +127,7 @@ $error = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : '';
                         <div class="field">
                             <label>Location <span class="optional">(Optional)</span></label>
                             <div class="input-wrap">
-                                <input type="text" name="location" placeholder="e.g. Malolos, Bulacan" />
+                                <input type="text" name="location" value="<?= $activeTab === 'signup' ? $oldLocation : '' ?>" placeholder="e.g. Malolos, Bulacan" />
                             </div>
                         </div>
                         <button type="submit" class="primary-button btn-block">Create My Account</button>

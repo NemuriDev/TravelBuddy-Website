@@ -15,20 +15,18 @@ $email = $_POST['email'] ?? '';
 $password = $_POST['password'] ?? '';
 
 if (empty($email) || empty($password)) {
-    header('Location: auth.php?error=Please fill in all fields');
-    exit;
+    redirectAuthError('login', 'Please fill in all fields', ['email' => $email]);
 }
 
 $db = getDBConnection();
 
 if (!$db) {
-    header('Location: auth.php?error=Database error');
-    exit;
+    redirectAuthError('login', 'Database error', ['email' => $email]);
 }
 
 // Get user information from database
 $stmt = $db->prepare("
-    SELECT id, name, email, password, location, role, created_at
+    SELECT id, name, email, password, location, role, created_at, profile_photo
     FROM users
     WHERE email = ?
 ");
@@ -46,6 +44,7 @@ if ($user && password_verify($password, $user['password'])) {
     $_SESSION['user_location'] = $user['location'];
     $_SESSION['user_created_at'] = $user['created_at'];
     $_SESSION['user_initials'] = getUserInitials($user['name']);
+    $_SESSION['user_profile_photo'] = $user['profile_photo'];
 
     // Get role directly from database
     $_SESSION['user_role'] = $user['role'];
@@ -57,7 +56,6 @@ if ($user && password_verify($password, $user['password'])) {
 } else {
 
     // Login failed
-    header('Location: auth.php?error=Invalid email or password');
-    exit;
+    redirectAuthError('login', 'Invalid email or password', ['email' => $email]);
 }
 ?>

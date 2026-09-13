@@ -114,7 +114,7 @@ try {
                 destinations.id AS destination_id,
                 destinations.name,
                 destinations.location,
-                destinations.image,
+                destinations.image_url AS image,
                 destinations.category
             FROM favorites
 
@@ -287,7 +287,8 @@ $error = isset($_GET['error'])
 
                     <a
                         class="btn-danger primary-button"
-                        href="logout.php">
+                        href="logout.php"
+                        onclick="clearLocalFavorites()">
                         Log Out
                     </a>
 

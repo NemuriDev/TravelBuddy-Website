@@ -19,18 +19,12 @@ $csrf_token = generateCSRFToken();
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap"
         rel="stylesheet" />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css?v=2">
 </head>
 
 <body>
     <main class="page-shell">
         <?php include __DIR__ . '/navbar.php'; ?>
-
-        <?php if ($loggedIn && $user): ?>
-            <div class="welcome-banner" style="background: #f0f7f4; padding: 10px 20px; text-align: center;">
-                Welcome, <?= htmlspecialchars($user['name']) ?>!
-            </div>
-        <?php endif; ?>
 
         <section class="hero-grid" aria-labelledby="hero-title">
             <div class="hero-copy reveal">
@@ -85,6 +79,8 @@ $csrf_token = generateCSRFToken();
                     </div>
                     <button class="filter-chip saved-filter" id="saved-filter" type="button"><span
                             aria-hidden="true">♡</span> Saved</button>
+                    <button class="filter-chip admin-only hidden" id="admin-add-btn" type="button"><span
+                            aria-hidden="true">✎</span> Add Place</button>
                     <button class="clear-button hidden" id="clear-filters" type="button">↻ Clear</button>
                 </div>
                 <div class="category-row" id="category-chips" aria-label="Mood filters"></div>
@@ -151,6 +147,7 @@ $csrf_token = generateCSRFToken();
                     </div>
 
                     <div class="review-form hidden" id="review-form">
+                        <p class="review-form-hint hidden" id="review-form-hint">You've already reviewed this place — saving will update your review.</p>
                         <p class="review-form-label">Your Rating</p>
                         <div class="star-input" id="star-input" role="radiogroup" aria-label="Your rating"></div>
                         <textarea id="review-text" placeholder="Share your experience..."></textarea>
@@ -175,10 +172,122 @@ $csrf_token = generateCSRFToken();
                     <button class="primary-button" id="modal-favorite" type="button"></button>
                     <button class="secondary-button" id="modal-share" type="button"><span aria-hidden="true">⌁</span>
                         <span id="share-label">Share the note</span></button>
+                    <button class="secondary-button admin-only hidden" id="modal-admin-edit" type="button"><span aria-hidden="true">✎</span> Edit Place</button>
                 </div>
                 <p class="saved-note">A guide is only as good as the care you bring to the place. Check local access,
                     weather, and current opening hours before you go.</p>
             </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop hidden" id="admin-edit-modal" role="presentation">
+        <div class="admin-edit-panel" role="dialog" aria-modal="true" aria-labelledby="admin-edit-title">
+            <button class="close-button" id="admin-edit-close" type="button" aria-label="Close">×</button>
+            <h2 id="admin-edit-title">Add a new place</h2>
+
+            <form id="admin-edit-form">
+                <input type="hidden" id="admin-field-original-slug" value="" />
+
+                <div class="field">
+                    <label>Name <span class="req">*</span></label>
+                    <input type="text" id="admin-field-name" required />
+                </div>
+
+                <div class="field">
+                    <label>Slug <span class="req">*</span></label>
+                    <input type="text" id="admin-field-slug" required pattern="[a-z0-9\-]+" placeholder="e.g. pulilan-watchtower" />
+                </div>
+
+                <div class="field">
+                    <label>Municipality <span class="req">*</span></label>
+                    <input type="text" id="admin-field-municipality" required />
+                </div>
+
+                <div class="admin-field-row">
+                    <div class="field">
+                        <label>Category</label>
+                        <select id="admin-field-category">
+                            <option value="Nature">Nature</option>
+                            <option value="Heritage">Heritage</option>
+                            <option value="Sacred">Sacred</option>
+                            <option value="Resort">Resort</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>Tag</label>
+                        <select id="admin-field-tag">
+                            <option value="Adventure">Adventure</option>
+                            <option value="Ancestral home">Ancestral home</option>
+                            <option value="Basilica">Basilica</option>
+                            <option value="Cave">Cave</option>
+                            <option value="Cave & river">Cave & river</option>
+                            <option value="Cave & spring">Cave & spring</option>
+                            <option value="Caves & trails">Caves & trails</option>
+                            <option value="Caving">Caving</option>
+                            <option value="Colonial">Colonial</option>
+                            <option value="Family">Family</option>
+                            <option value="Farm café">Farm café</option>
+                            <option value="Farm stay">Farm stay</option>
+                            <option value="Glamping">Glamping</option>
+                            <option value="Hidden waterfall">Hidden waterfall</option>
+                            <option value="Hiking">Hiking</option>
+                            <option value="Hillwalk">Hillwalk</option>
+                            <option value="Historic church">Historic church</option>
+                            <option value="History">History</option>
+                            <option value="House museum">House museum</option>
+                            <option value="Landmark">Landmark</option>
+                            <option value="Memorial">Memorial</option>
+                            <option value="Monument">Monument</option>
+                            <option value="Museum">Museum</option>
+                            <option value="Parish">Parish</option>
+                            <option value="Pilgrimage">Pilgrimage</option>
+                            <option value="Private pool">Private pool</option>
+                            <option value="Reservoir view">Reservoir view</option>
+                            <option value="Resort">Resort</option>
+                            <option value="Retreat">Retreat</option>
+                            <option value="Riverside shrine">Riverside shrine</option>
+                            <option value="Roadside">Roadside</option>
+                            <option value="Shrine">Shrine</option>
+                            <option value="Small resort">Small resort</option>
+                            <option value="Summit hike">Summit hike</option>
+                            <option value="Viewpoint">Viewpoint</option>
+                            <option value="Waterfall">Waterfall</option>
+                            <option value="Waterpark">Waterpark</option>
+                            <option value="Wave pools">Wave pools</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Field note</label>
+                    <input type="text" id="admin-field-note" placeholder="e.g. Half-day" />
+                </div>
+
+                <div class="field">
+                    <label>Location</label>
+                    <input type="text" id="admin-field-location" placeholder="Full address" />
+                </div>
+
+                <div class="field">
+                    <label>Photo</label>
+                    <input type="url" id="admin-field-image-url" placeholder="Paste an image URL" />
+                    <p class="admin-field-or">— or —</p>
+                    <input type="file" id="admin-field-image-file" accept="image/jpeg,image/png,image/webp" />
+                </div>
+
+                <div class="field">
+                    <label>Description</label>
+                    <textarea id="admin-field-description" rows="4" placeholder="A sentence or two for the guide card."></textarea>
+                </div>
+
+                <p class="admin-form-error hidden" id="admin-form-error"></p>
+
+                <div class="admin-edit-actions">
+                    <button type="button" class="admin-delete-link hidden" id="admin-delete-btn">Delete this place</button>
+                    <button type="submit" class="primary-button btn-terracotta">Save Place</button>
+                </div>
+            </form>
         </div>
     </div>
 

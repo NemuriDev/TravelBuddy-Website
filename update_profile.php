@@ -137,16 +137,26 @@ if (!empty($newPassword)) {
 
 $params[] = $userId;
 
-$stmt = $db->prepare(
-    'UPDATE users SET ' . implode(', ', $setClauses) . ' WHERE id = ?'
-);
-$stmt->execute($params);
+try {
+    $stmt = $db->prepare(
+        'UPDATE users SET ' . implode(', ', $setClauses) . ' WHERE id = ?'
+    );
+    $stmt->execute($params);
+} catch (PDOException $e) {
+    error_log('Profile update failed: ' . $e->getMessage());
+    header('Location: userprofile.php?error=Could not save changes, please try again');
+    exit;
+}
 
 // Update session variables
 $_SESSION['user_name'] = $name;
 $_SESSION['user_email'] = $email;
 $_SESSION['user_location'] = $location;
 $_SESSION['user_initials'] = getUserInitials($name);
+
+if ($profilePhoto !== null) {
+    $_SESSION['user_profile_photo'] = $profilePhoto;
+}
 
 header('Location: userprofile.php?updated=1');
 exit;

@@ -65,31 +65,79 @@ const destinations = [
 
 /* -------------------------------------------------------------------
    Destination rating helpers
+   Real average rating + review count, loaded from the database via
+   api/get_ratings.php and cached here for both the home page and the
+   full guide to read from. A place with no reviews yet is "New", not
+   a made-up number.
    ------------------------------------------------------------------- */
 
-function hashString(value) {
-    let hash = 0;
+let ratingsCache = {};
 
-    for (let i = 0; i < value.length; i += 1) {
-        hash = (hash * 31 + value.charCodeAt(i)) >>> 0;
+/**
+ * Inserts a new place, or updates an existing one in place (so any
+ * page currently rendering the array picks up the edit on next
+ * render), keyed by slug.
+ */
+function applyDestinationUpdate(place) {
+    const index = destinations.findIndex(
+        (existing) => existing.id === place.id
+    );
+
+    if (index === -1) {
+        destinations.push(place);
+    } else {
+        destinations[index] = place;
     }
+}
 
-    return hash;
+/**
+ * Places added or edited through the admin panel live in the
+ * `destinations` DB table; the 40 built-in places live in the array
+ * above. Rows here overwrite a built-in place with the same slug
+ * (so admin edits actually show up) and any new slug is appended.
+ */
+async function syncDestinationsFromServer() {
+    try {
+        const res = await fetch("api/get_destinations.php");
+        const data = await res.json();
+
+        if (!data.ok) {
+            return;
+        }
+
+        data.destinations.forEach(applyDestinationUpdate);
+    } catch {
+        // Offline or unreachable — the guide still shows its built-in list.
+    }
+}
+
+async function syncRatingsFromServer() {
+    try {
+        const res = await fetch("api/get_ratings.php");
+        const data = await res.json();
+
+        if (data.ok) {
+            ratingsCache = data.ratings;
+        }
+    } catch {
+        // Couldn't reach the database — destinations render as "New"
+        // rather than showing a stale or fabricated number.
+    }
 }
 
 function ratingFor(place) {
-    const hash = hashString(place.id);
-    const rating = 4.3 + ((hash % 71) / 100);
-    const reviews = 40 + (hash % 280);
+    const entry = ratingsCache[place.id];
 
-    return {
-        rating: rating.toFixed(1),
-        reviews
-    };
+    if (!entry || !entry.count) {
+        return { rating: "New", reviews: 0 };
+    }
+
+    return { rating: entry.rating.toFixed(1), reviews: entry.count };
 }
 
 function starString(rating) {
-    const full = Math.round(parseFloat(rating));
+    const parsed = Number(rating);
+    const full = Number.isFinite(parsed) ? Math.round(parsed) : 0;
 
     return "★".repeat(full) + "☆".repeat(5 - full);
 }
@@ -373,7 +421,8 @@ function initDestinationPage() {
         favorites: readFavorites(),
         reviews: readReviews(),
         reviewRating: 5,
-        selected: null
+        selected: null,
+        myReview: null
     };
 
     function readReviews() {
@@ -426,11 +475,31 @@ function initDestinationPage() {
         shareLabel: document.querySelector("#share-label"),
         writeReviewBtn: document.querySelector("#write-review-btn"),
         reviewForm: document.querySelector("#review-form"),
+        reviewFormHint: document.querySelector("#review-form-hint"),
         starInput: document.querySelector("#star-input"),
         reviewText: document.querySelector("#review-text"),
         cancelReviewBtn: document.querySelector("#cancel-review-btn"),
         submitReviewBtn: document.querySelector("#submit-review-btn"),
-        reviewList: document.querySelector("#review-list")
+        reviewList: document.querySelector("#review-list"),
+        adminAddBtn: document.querySelector("#admin-add-btn"),
+        modalAdminEdit: document.querySelector("#modal-admin-edit"),
+        adminModal: document.querySelector("#admin-edit-modal"),
+        adminForm: document.querySelector("#admin-edit-form"),
+        adminClose: document.querySelector("#admin-edit-close"),
+        adminTitle: document.querySelector("#admin-edit-title"),
+        adminOriginalSlug: document.querySelector("#admin-field-original-slug"),
+        adminName: document.querySelector("#admin-field-name"),
+        adminSlug: document.querySelector("#admin-field-slug"),
+        adminMunicipality: document.querySelector("#admin-field-municipality"),
+        adminCategory: document.querySelector("#admin-field-category"),
+        adminTag: document.querySelector("#admin-field-tag"),
+        adminFieldNote: document.querySelector("#admin-field-note"),
+        adminLocation: document.querySelector("#admin-field-location"),
+        adminImageUrl: document.querySelector("#admin-field-image-url"),
+        adminImageFile: document.querySelector("#admin-field-image-file"),
+        adminDescription: document.querySelector("#admin-field-description"),
+        adminError: document.querySelector("#admin-form-error"),
+        adminDeleteBtn: document.querySelector("#admin-delete-btn")
     };
 
     function writeFavorites() {
@@ -679,7 +748,14 @@ function initDestinationPage() {
     }
 
     function toggleFavorite(id) {
-        state.favorites = state.favorites.includes(id)
+        if (!window.APP_CONFIG || !window.APP_CONFIG.loggedIn) {
+            window.location.href = "auth.php";
+            return;
+        }
+
+        const wasFavorite = state.favorites.includes(id);
+
+        state.favorites = wasFavorite
             ? state.favorites.filter(
                 (item) => item !== id
             )
@@ -694,6 +770,38 @@ function initDestinationPage() {
         ) {
             renderModal(state.selected);
         }
+
+        fetch("api/toggle_favorite.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                slug: id,
+                csrf_token: window.APP_CONFIG.csrfToken
+            })
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                if (!data.ok) {
+                    throw new Error(data.error || "Save failed");
+                }
+            })
+            .catch(() => {
+                // Couldn't save to the account — undo the optimistic
+                // update so the UI doesn't claim it's saved when it isn't.
+                state.favorites = wasFavorite
+                    ? [...state.favorites, id]
+                    : state.favorites.filter((item) => item !== id);
+
+                writeFavorites();
+                renderCards();
+
+                if (
+                    state.selected &&
+                    state.selected.id === id
+                ) {
+                    renderModal(state.selected);
+                }
+            });
     }
 
     function clearFilters() {
@@ -760,7 +868,67 @@ function initDestinationPage() {
             return;
         }
 
-        const list = getReviewsFor(place.id);
+        // Unknown until the fetch resolves — don't carry over the
+        // previous place's "you already reviewed this" state.
+        state.myReview = null;
+        updateReviewButtonLabels();
+
+        // Paint immediately from local/seed data so the modal never
+        // looks empty while the network request is in flight, then
+        // replace it with the real database reviews once they load.
+        paintReviews(getReviewsFor(place.id));
+
+        fetch(
+            `api/get_reviews.php?slug=${encodeURIComponent(place.id)}`
+        )
+            .then((res) => res.json())
+            .then((data) => {
+                if (!data.ok || !state.selected || state.selected.id !== place.id) {
+                    return;
+                }
+
+                // Only replace the placeholder if the database actually
+                // has reviews — an empty result usually just means the
+                // destinations table hasn't been seeded for this place yet.
+                if (data.reviews.length > 0) {
+                    paintReviews(data.reviews);
+                }
+
+                state.myReview = data.mine || null;
+                updateReviewButtonLabels();
+            })
+            .catch(() => {
+                // Database not reachable — keep showing the local/seed list.
+            });
+    }
+
+    /**
+     * Makes it visible, rather than a surprise, that submitting again
+     * edits the review already on file instead of creating a new one.
+     */
+    function updateReviewButtonLabels() {
+        if (elements.writeReviewBtn) {
+            elements.writeReviewBtn.textContent = state.myReview
+                ? "✎ Edit Your Review"
+                : "+ Write a Review";
+        }
+
+        if (elements.submitReviewBtn) {
+            elements.submitReviewBtn.textContent = state.myReview
+                ? "Update Review"
+                : "Submit Review";
+        }
+
+        elements.reviewFormHint?.classList.toggle(
+            "hidden",
+            !state.myReview
+        );
+    }
+
+    function paintReviews(list) {
+        if (!elements.reviewList) {
+            return;
+        }
 
         if (list.length === 0) {
             elements.reviewList.innerHTML = `
@@ -819,6 +987,11 @@ function initDestinationPage() {
     }
 
     function submitReview() {
+        if (!window.APP_CONFIG || !window.APP_CONFIG.loggedIn) {
+            window.location.href = "auth.php";
+            return;
+        }
+
         if (!state.selected) {
             return;
         }
@@ -831,31 +1004,52 @@ function initDestinationPage() {
             return;
         }
 
-        const placeId = state.selected.id;
+        submitReviewToServer(state.selected.id, text);
+    }
 
-        const existing = state.reviews[placeId]
-            ? state.reviews[placeId]
-            : [...getReviewsFor(placeId)];
-
-        existing.unshift({
-            name: "You",
-            initials: "YO",
-            date: new Date().toLocaleDateString(
-                undefined,
-                {
-                    month: "long",
-                    year: "numeric"
+    function submitReviewToServer(placeId, text) {
+        fetch("api/submit_review.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                slug: placeId,
+                rating: state.reviewRating,
+                comment: text,
+                csrf_token: window.APP_CONFIG.csrfToken
+            })
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                if (!data.ok) {
+                    throw new Error(data.error || "Save failed");
                 }
-            ),
-            rating: state.reviewRating,
-            text
-        });
 
-        state.reviews[placeId] = existing;
+                renderReviews(state.selected);
+                resetReviewForm();
 
-        writeReviews();
-        renderReviews(state.selected);
-        resetReviewForm();
+                return syncRatingsFromServer();
+            })
+            .then(() => {
+                renderCards();
+
+                if (
+                    elements.modalRating &&
+                    state.selected &&
+                    state.selected.id === placeId
+                ) {
+                    const { rating, reviews } = ratingFor(state.selected);
+
+                    elements.modalRating.innerHTML = `
+                        <span aria-hidden="true">${starString(rating)}</span>
+                        <span class="count">${rating} (${reviews} reviews)</span>
+                    `;
+                }
+            })
+            .catch(() => {
+                alert(
+                    "Couldn't save your review right now — please try again."
+                );
+            });
     }
 
     function renderModal(place) {
@@ -1222,20 +1416,207 @@ function initDestinationPage() {
         }
     );
 
+    /* ---------------------------------------------------------------
+       Admin: add / edit / delete a place
+       --------------------------------------------------------------- */
+
+    function openAdminEditModal(place) {
+        if (!elements.adminModal) {
+            return;
+        }
+
+        elements.adminError?.classList.add("hidden");
+
+        if (place) {
+            elements.adminTitle.textContent = "Edit place";
+            elements.adminOriginalSlug.value = place.id;
+            elements.adminName.value = place.name || "";
+            elements.adminSlug.value = place.id || "";
+            elements.adminMunicipality.value = place.municipality || "";
+            elements.adminCategory.value = place.category || "";
+            elements.adminTag.value = place.tag || "";
+            elements.adminFieldNote.value = place.time || "";
+            elements.adminLocation.value = place.location || "";
+            elements.adminImageUrl.value = place.imageUrl || "";
+            elements.adminDescription.value = place.description || "";
+            elements.adminDeleteBtn?.classList.remove("hidden");
+        } else {
+            elements.adminTitle.textContent = "Add a new place";
+            elements.adminForm?.reset();
+            elements.adminOriginalSlug.value = "";
+            elements.adminDeleteBtn?.classList.add("hidden");
+        }
+
+        elements.adminModal.classList.remove("hidden");
+    }
+
+    function closeAdminEditModal() {
+        elements.adminModal?.classList.add("hidden");
+    }
+
+    elements.adminAddBtn?.addEventListener(
+        "click",
+        () => openAdminEditModal(null)
+    );
+
+    elements.modalAdminEdit?.addEventListener(
+        "click",
+        () => {
+            if (state.selected) {
+                openAdminEditModal(state.selected);
+            }
+        }
+    );
+
+    elements.adminClose?.addEventListener(
+        "click",
+        closeAdminEditModal
+    );
+
+    elements.adminModal?.addEventListener(
+        "click",
+        (event) => {
+            if (event.target === elements.adminModal) {
+                closeAdminEditModal();
+            }
+        }
+    );
+
+    elements.adminForm?.addEventListener(
+        "submit",
+        (event) => {
+            event.preventDefault();
+
+            const formData = new FormData();
+            formData.append("csrf_token", window.APP_CONFIG.csrfToken);
+            formData.append("original_slug", elements.adminOriginalSlug.value);
+            formData.append("name", elements.adminName.value.trim());
+            formData.append("slug", elements.adminSlug.value.trim());
+            formData.append("municipality", elements.adminMunicipality.value.trim());
+            formData.append("category", elements.adminCategory.value);
+            formData.append("tag", elements.adminTag.value);
+            formData.append("field_note", elements.adminFieldNote.value.trim());
+            formData.append("location", elements.adminLocation.value.trim());
+            formData.append("image_url", elements.adminImageUrl.value.trim());
+            formData.append("description", elements.adminDescription.value.trim());
+
+            if (elements.adminImageFile.files[0]) {
+                formData.append("image_file", elements.adminImageFile.files[0]);
+            }
+
+            fetch("api/admin_save_destination.php", {
+                method: "POST",
+                body: formData
+            })
+                .then((res) => res.json())
+                .then((data) => {
+                    if (!data.ok) {
+                        throw new Error(data.error || "Save failed");
+                    }
+
+                    applyDestinationUpdate(data.destination);
+                    closeAdminEditModal();
+                    renderCards();
+
+                    if (
+                        state.selected &&
+                        state.selected.id === data.destination.id
+                    ) {
+                        renderModal(state.selected);
+                    }
+
+                    showToast("Place saved.", "success");
+                })
+                .catch((error) => {
+                    if (elements.adminError) {
+                        elements.adminError.textContent =
+                            error.message || "Couldn't save this place.";
+                        elements.adminError.classList.remove("hidden");
+                    }
+                });
+        }
+    );
+
+    elements.adminDeleteBtn?.addEventListener(
+        "click",
+        () => {
+            const slug = elements.adminOriginalSlug.value;
+
+            if (
+                !slug ||
+                !confirm("Delete this place? This cannot be undone.")
+            ) {
+                return;
+            }
+
+            fetch("api/admin_delete_destination.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    slug,
+                    csrf_token: window.APP_CONFIG.csrfToken
+                })
+            })
+                .then((res) => res.json())
+                .then((data) => {
+                    if (!data.ok) {
+                        throw new Error(data.error || "Delete failed");
+                    }
+
+                    const index = destinations.findIndex(
+                        (place) => place.id === slug
+                    );
+
+                    if (index !== -1) {
+                        destinations.splice(index, 1);
+                    }
+
+                    closeAdminEditModal();
+                    closeModal();
+                    renderCards();
+                    showToast("Place deleted.", "success");
+                })
+                .catch((error) => {
+                    if (elements.adminError) {
+                        elements.adminError.textContent =
+                            error.message || "Couldn't delete this place.";
+                        elements.adminError.classList.remove("hidden");
+                    }
+                });
+        }
+    );
+
     elements.writeReviewBtn?.addEventListener(
         "click",
         () => {
+            if (!window.APP_CONFIG || !window.APP_CONFIG.loggedIn) {
+                window.location.href = "auth.php";
+                return;
+            }
+
             elements.reviewForm
                 ?.classList.toggle(
                     "hidden"
                 );
 
-            if (
+            const isOpen =
                 elements.reviewForm &&
                 !elements.reviewForm.classList.contains(
                     "hidden"
-                )
-            ) {
+                );
+
+            if (isOpen) {
+                state.reviewRating = state.myReview
+                    ? state.myReview.rating
+                    : 5;
+
+                if (elements.reviewText) {
+                    elements.reviewText.value = state.myReview
+                        ? state.myReview.text
+                        : "";
+                }
+
+                renderStarInput();
                 elements.reviewText?.focus();
             }
         }
@@ -1345,6 +1726,90 @@ function readFavorites() {
         );
     } catch {
         return [];
+    }
+}
+
+/**
+ * The favorites cache is only ever meaningful for whoever is logged in.
+ * Without this, logging out leaves the previous account's saved count
+ * showing to the next (guest or different) visitor on this browser.
+ */
+function clearLocalFavorites() {
+    localStorage.removeItem("travelbuddies-favorites");
+}
+
+/**
+ * Shows a dismissible toast pinned to the top of the viewport. Auto-
+ * removes after `duration` ms, or immediately if the person clicks the
+ * close button — whichever comes first.
+ */
+function showToast(message, type = "success", duration = 5000) {
+    let container = document.querySelector(".toast-container");
+
+    if (!container) {
+        container = document.createElement("div");
+        container.className = "toast-container";
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement("div");
+    toast.className = `toast toast-${type}`;
+
+    const text = document.createElement("span");
+    text.className = "toast-message";
+    text.textContent = message;
+
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "toast-close";
+    closeBtn.type = "button";
+    closeBtn.setAttribute("aria-label", "Dismiss notification");
+    closeBtn.textContent = "×";
+
+    toast.appendChild(text);
+    toast.appendChild(closeBtn);
+    container.appendChild(toast);
+
+    const remove = () => {
+        toast.classList.add("is-leaving");
+        toast.addEventListener(
+            "animationend",
+            () => toast.remove(),
+            { once: true }
+        );
+    };
+
+    const timer = setTimeout(remove, duration);
+    closeBtn.addEventListener("click", () => {
+        clearTimeout(timer);
+        remove();
+    });
+}
+
+
+/**
+ * For a logged-in visitor, localStorage is just a fast local cache —
+ * the database (via api/get_favorites.php) is the source of truth.
+ * Call this once before the first render so readFavorites() already
+ * reflects what's saved on the account, not just this browser.
+ */
+async function syncFavoritesFromServer() {
+    if (!window.APP_CONFIG || !window.APP_CONFIG.loggedIn) {
+        return;
+    }
+
+    try {
+        const res = await fetch("api/get_favorites.php");
+        const data = await res.json();
+
+        if (data.ok) {
+            localStorage.setItem(
+                "travelbuddies-favorites",
+                JSON.stringify(data.favorites)
+            );
+        }
+    } catch {
+        // Offline or the API isn't reachable — fall back to
+        // whatever was already cached in this browser.
     }
 }
 
@@ -1687,7 +2152,33 @@ function previewPhoto(event) {
 
 document.addEventListener(
     "DOMContentLoaded",
-    () => {
+    async () => {
+        // Wait for the account's real favorites and the real ratings
+        // before the first render, so nobody sees a flash of the wrong
+        // state or a fabricated number.
+        if (window.APP_CONFIG && window.APP_CONFIG.loggedIn) {
+            await Promise.all([
+                syncFavoritesFromServer(),
+                syncRatingsFromServer(),
+                syncDestinationsFromServer()
+            ]);
+        } else {
+            // Guests can't save places, so any favorites still sitting
+            // in this browser are leftovers from a previous account
+            // (most commonly: right after logging out).
+            clearLocalFavorites();
+            await Promise.all([
+                syncRatingsFromServer(),
+                syncDestinationsFromServer()
+            ]);
+        }
+
+        if (window.APP_CONFIG && window.APP_CONFIG.isAdmin) {
+            document
+                .querySelectorAll(".admin-only")
+                .forEach((el) => el.classList.remove("hidden"));
+        }
+
         initHomePage();
         initDestinationPage();
         updateCounts();

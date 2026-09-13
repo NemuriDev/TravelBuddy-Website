@@ -21,18 +21,12 @@ $csrf_token = generateCSRFToken();
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap"
         rel="stylesheet" />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css?v=6">
 </head>
 
 <body>
     <main class="page-shell">
         <?php include __DIR__ . '/navbar.php'; ?>
-
-        <?php if ($loggedIn && $user): ?>
-            <div class="welcome-banner" style="background: #f0f7f4; padding: 10px 20px; text-align: center;">
-                Welcome, <?= htmlspecialchars($user['name']) ?>!
-            </div>
-        <?php endif; ?>
 
         <section class="hero-grid" aria-labelledby="hero-title">
             <div class="hero-copy reveal">
@@ -43,7 +37,7 @@ $csrf_token = generateCSRFToken();
                     Saturday takes you.</p>
                 <div class="hero-actions">
                     <a class="primary-button" href="destination.php#places">Explore the guide <span aria-hidden="true">↗</span></a>
-                    <a class="secondary-button" href="LogIn.php">Create a free account</a>
+                    <a class="secondary-button" href="auth.php">Create a free account</a>
                 </div>
             </div>
             <div class="hero-art reveal" style="--delay: .12s">

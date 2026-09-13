@@ -16,30 +16,29 @@ $email = trim($_POST['email'] ?? '');
 $password = $_POST['password'] ?? '';
 $location = trim($_POST['location'] ?? '');
 
+// Everything the signup form needs back on error — never the password.
+$oldFields = ['name' => $name, 'email' => $email, 'location' => $location];
+
 // Validate required fields
 if (empty($name) || empty($email) || empty($password)) {
-    header('Location: auth.php?error=All required fields must be filled');
-    exit;
+    redirectAuthError('signup', 'All required fields must be filled', $oldFields);
 }
 
 // Validate email
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    header('Location: auth.php?error=Invalid email address');
-    exit;
+    redirectAuthError('signup', 'Invalid email address', $oldFields);
 }
 
 // Validate password
 if (strlen($password) < 8) {
-    header('Location: auth.php?error=Password must be at least 8 characters');
-    exit;
+    redirectAuthError('signup', 'Password must be at least 8 characters', $oldFields);
 }
 
 // Connect to database
 $db = getDBConnection();
 
 if (!$db) {
-    header('Location: auth.php?error=Database error');
-    exit;
+    redirectAuthError('signup', 'Database error', $oldFields);
 }
 
 // Check if email already exists
@@ -47,8 +46,7 @@ $stmt = $db->prepare("SELECT id FROM users WHERE email = ?");
 $stmt->execute([$email]);
 
 if ($stmt->fetch()) {
-    header('Location: auth.php?error=Email already registered');
-    exit;
+    redirectAuthError('signup', 'Email already registered', $oldFields);
 }
 
 // Hash password
@@ -86,7 +84,6 @@ if ($stmt->execute([
 
 } else {
 
-    header('Location: auth.php?error=Signup failed, please try again');
-    exit;
+    redirectAuthError('signup', 'Signup failed, please try again', $oldFields);
 }
 ?>

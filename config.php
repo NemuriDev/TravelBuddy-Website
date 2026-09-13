@@ -96,10 +96,6 @@ define('DATETIME_FORMAT', 'F j, Y g:i A');
 // USER ROLES
 // ============================================================
 
-// ============================================================
-// USER ROLES
-// ============================================================
-
 define('ROLE_ADMIN', 'admin');
 define('ROLE_TOURIST', 'tourist');
 define('ROLE_GUEST', 'guest');
@@ -121,16 +117,13 @@ define('CSRF_TOKEN_NAME', 'csrf_token');
 define('CSRF_TOKEN_LIFETIME', 1800);
 
 // ============================================================
-// EMAIL CONFIGURATION
+// EMAIL CONFIGURATION (Brevo transactional email API)
 // ============================================================
 
-define('MAIL_HOST', 'smtp.gmail.com');
-define('MAIL_PORT', 587);
-define('MAIL_USERNAME', 'your-email@gmail.com');
-define('MAIL_PASSWORD', 'your-app-password');
-define('MAIL_ENCRYPTION', 'tls');
-define('MAIL_FROM', SITE_EMAIL);
-define('MAIL_FROM_NAME', SITE_NAME);
+define('BREVO_API_KEY', ''); // TODO: from Brevo → SMTP & API → API Keys
+define('BREVO_SENDER_EMAIL', 'travelbuddies79@gmail.com'); // TODO: must be a verified sender in Brevo
+define('BREVO_SENDER_NAME', 'TravelBuddy');
+define('CONTACT_RECIPIENT', 'mjntarin@tip.edu.ph'); // where contact-form messages are delivered
 
 // ============================================================
 // SOCIAL LINKS
@@ -199,6 +192,7 @@ function getCurrentUser() {
         'initials' => $_SESSION['user_initials'] ?? null,
         'location' => $_SESSION['user_location'] ?? null,
         'created_at' => $_SESSION['user_created_at'] ?? null,
+        'profile_photo' => $_SESSION['user_profile_photo'] ?? null,
     ];
 }
 
@@ -208,7 +202,10 @@ function getCurrentUser() {
 function getUserData($userId) {
     $db = getDBConnection();
     if (!$db) return null;
-    $stmt = $db->prepare("SELECT id, name, email, location, created_at FROM users WHERE id = ?");
+    // FIX: bio and profile_photo were missing from this SELECT, so
+    // userprofile.php could never display a saved bio or photo even
+    // though update_profile.php was writing them to the DB correctly.
+    $stmt = $db->prepare("SELECT id, name, email, location, bio, profile_photo, created_at FROM users WHERE id = ?");
     $stmt->execute([$userId]);
     return $stmt->fetch();
 }
@@ -229,6 +226,16 @@ function getUserInitials($name) {
 // ============================================================
 
 function generateCSRFToken() {
+    // Reuse a live token instead of minting a new one on every include,
+    // so a token issued to a page doesn't go stale before the browser
+    // posts back with it.
+    if (
+        isset($_SESSION[CSRF_TOKEN_NAME], $_SESSION[CSRF_TOKEN_NAME . '_time']) &&
+        (time() - $_SESSION[CSRF_TOKEN_NAME . '_time'] <= CSRF_TOKEN_LIFETIME)
+    ) {
+        return $_SESSION[CSRF_TOKEN_NAME];
+    }
+
     $token = bin2hex(random_bytes(32));
     $_SESSION[CSRF_TOKEN_NAME] = $token;
     $_SESSION[CSRF_TOKEN_NAME . '_time'] = time();
@@ -255,9 +262,67 @@ function url($path = '') {
     return SITE_URL . '/' . ltrim($path, '/');
 }
 
+/**
+ * Sends one transactional email through Brevo's HTTP API (POST over
+ * HTTPS, port 443) — never SMTP, so hosting-provider port restrictions
+ * on 25/465/587 can't affect it. Throws on any failure (missing curl,
+ * network error, or a non-2xx response from Brevo) so the caller can
+ * decide how to tell the visitor, rather than silently doing nothing.
+ */
+function sendTransactionalEmail($toEmail, $toName, $subject, $textBody, $replyToEmail = null, $replyToName = null) {
+    $payload = [
+        'sender' => ['name' => BREVO_SENDER_NAME, 'email' => BREVO_SENDER_EMAIL],
+        'to' => [['email' => $toEmail, 'name' => $toName]],
+        'subject' => $subject,
+        'textContent' => $textBody,
+    ];
+
+    if ($replyToEmail !== null) {
+        $payload['replyTo'] = ['email' => $replyToEmail, 'name' => $replyToName ?? $replyToEmail];
+    }
+
+    $ch = curl_init('https://api.brevo.com/v3/smtp/email');
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_HTTPHEADER => [
+            'accept: application/json',
+            'content-type: application/json',
+            'api-key: ' . BREVO_API_KEY,
+        ],
+        CURLOPT_POSTFIELDS => json_encode($payload),
+        CURLOPT_TIMEOUT => 15,
+    ]);
+
+    $response = curl_exec($ch);
+    $curlError = curl_error($ch);
+    $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($response === false) {
+        throw new RuntimeException('Brevo request failed: ' . $curlError);
+    }
+
+    if ($statusCode < 200 || $statusCode >= 300) {
+        throw new RuntimeException("Brevo API returned HTTP {$statusCode}: {$response}");
+    }
+}
+
 function redirect($url, $status = 302) {
     header('Location: ' . $url, true, $status);
     exit();
+}
+
+/**
+ * Send the visitor back to auth.php after a failed login/signup, keeping
+ * the same tab open and refilling what they'd already typed. $fields
+ * should only ever contain non-sensitive values (name, email, location) —
+ * never a password.
+ */
+function redirectAuthError($tab, $error, $fields = []) {
+    $params = array_merge(['tab' => $tab, 'error' => $error], $fields);
+    header('Location: auth.php?' . http_build_query($params));
+    exit;
 }
 
 // ============================================================
