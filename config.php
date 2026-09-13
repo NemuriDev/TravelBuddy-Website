@@ -123,7 +123,7 @@ define('CSRF_TOKEN_LIFETIME', 1800);
 define('BREVO_API_KEY', ''); // TODO: from Brevo → SMTP & API → API Keys
 define('BREVO_SENDER_EMAIL', 'travelbuddies79@gmail.com'); // TODO: must be a verified sender in Brevo
 define('BREVO_SENDER_NAME', 'TravelBuddy');
-define('CONTACT_RECIPIENT', 'mjntarin@tip.edu.ph'); // where contact-form messages are delivered
+define('CONTACT_RECIPIENT', ''); // where contact-form messages are delivered
 
 // ============================================================
 // SOCIAL LINKS
