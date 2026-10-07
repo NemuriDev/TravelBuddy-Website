@@ -10,7 +10,7 @@ mb_internal_encoding('UTF-8');
 
 // EMAIL CONFIGURATION (Brevo transactional email API)
 define('BREVO_API_KEY', ''); 
-define('BREVO_SENDER_EMAIL', 'travelbuddies79@gmail.com'); // TODO: must be a verified sender in Brevo
+define('BREVO_SENDER_EMAIL', 'travelbuddies79@gmail.com'); 
 define('BREVO_SENDER_NAME', 'TravelBuddy');
 define('CONTACT_RECIPIENT', 'mjntarin@tip.edu.ph'); // where contact-form messages are delivered
 
