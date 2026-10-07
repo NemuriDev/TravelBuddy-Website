@@ -9,7 +9,7 @@ date_default_timezone_set('Asia/Manila');
 mb_internal_encoding('UTF-8');
 
 // EMAIL CONFIGURATION (Brevo transactional email API)
-define('BREVO_API_KEY', 'Key'); 
+define('BREVO_API_KEY', ''); 
 define('BREVO_SENDER_EMAIL', 'travelbuddies79@gmail.com'); // TODO: must be a verified sender in Brevo
 define('BREVO_SENDER_NAME', 'TravelBuddy');
 define('CONTACT_RECIPIENT', 'mjntarin@tip.edu.ph'); // where contact-form messages are delivered
@@ -18,7 +18,7 @@ define('CONTACT_RECIPIENT', 'mjntarin@tip.edu.ph'); // where contact-form messag
 define('DB_HOST', 'sql313.ezyro.com');
 define('DB_NAME', 'ezyro_43047792_users');
 define('DB_USER', 'ezyro_43047792');
-define('DB_PASS', 'key');
+define('DB_PASS', '');
 define('DB_CHARSET', 'utf8mb4');
 define('DB_COLLATION', 'utf8mb4_unicode_ci');
 
