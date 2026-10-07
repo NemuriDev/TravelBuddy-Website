@@ -35,9 +35,7 @@ $reviews = array_map(function ($row) use ($currentUserId, &$mine) {
         'text' => $row['comment'],
     ];
 
-    // Flag the viewer's own review while we're already looping the
-    // rows, rather than a second query — used to pre-fill the form
-    // and switch it into "edit" mode.
+    // Flag the viewer's own review 
     if ($currentUserId !== null && (int) $row['user_id'] === (int) $currentUserId) {
         $mine = [
             'rating' => (int) $row['rating'],
