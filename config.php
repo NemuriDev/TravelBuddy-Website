@@ -1,96 +1,34 @@
 <?php
-/**
- * TravelBuddies - Configuration File
- * 
- * This file contains all global configuration settings for the application.
- * Include this file at the top of every page before any other code.
- */
 
-// ============================================================
-// ERROR REPORTING (Development vs Production)
-// ============================================================
+// ERROR REPORTING
+// Log everything, show nothing to visitors.
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
 
-define('ENVIRONMENT', 'production'); // Change to 'production' for live site
+date_default_timezone_set('Asia/Manila');
+mb_internal_encoding('UTF-8');
 
-if (ENVIRONMENT === 'development') {
-    error_reporting(E_ALL);
-    ini_set('display_errors', 1);
-} else {
-    error_reporting(0);
-    ini_set('display_errors', 0);
-}
+// EMAIL CONFIGURATION (Brevo transactional email API)
+define('BREVO_API_KEY', 'Key'); 
+define('BREVO_SENDER_EMAIL', 'travelbuddies79@gmail.com'); // TODO: must be a verified sender in Brevo
+define('BREVO_SENDER_NAME', 'TravelBuddy');
+define('CONTACT_RECIPIENT', 'mjntarin@tip.edu.ph'); // where contact-form messages are delivered
 
-// ============================================================
-// SITE CONFIGURATION
-// ============================================================
-
-define('SITE_NAME', 'TravelBuddy');
-define('SITE_TAGLINE', 'A visual field guide to places worth the detour in Bulacan.');
-define('SITE_URL', 'https://travelbuddyy.page.gd');
-define('SITE_EMAIL', 'info@travelbuddy.com');
-
-// ============================================================
 // DATABASE CONFIGURATION
-// ============================================================
-
-define('DB_HOST', 'sql200.infinityfree.com');
-define('DB_NAME', 'if0_42856607_users');
-define('DB_USER', 'if0_42856607');
-define('DB_PASS', '');
-
+define('DB_HOST', 'sql313.ezyro.com');
+define('DB_NAME', 'ezyro_43047792_users');
+define('DB_USER', 'ezyro_43047792');
+define('DB_PASS', 'key');
 define('DB_CHARSET', 'utf8mb4');
 define('DB_COLLATION', 'utf8mb4_unicode_ci');
 
 // ============================================================
-// SESSION CONFIGURATION
+// SITE
 // ============================================================
 
-define('SESSION_NAME', 'travelbuddy_session');
-define('SESSION_LIFETIME', 3600); // 1 hour
-
-// Set session cookie parameters and garbage collection lifetime
-ini_set('session.gc_maxlifetime', SESSION_LIFETIME);
-session_set_cookie_params(SESSION_LIFETIME);
-
-session_name(SESSION_NAME);
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-// ============================================================
-// FILE & PATH CONFIGURATION
-// ============================================================
-
-define('ROOT_PATH', __DIR__);
-define('INCLUDES_PATH', ROOT_PATH . '/includes');
-define('UPLOAD_PATH', ROOT_PATH . '/uploads');
-define('ASSETS_PATH', ROOT_PATH . '/assets');
-
-define('ASSETS_URL', SITE_URL . '/assets');
-define('UPLOAD_URL', SITE_URL . '/uploads');
-
-// ============================================================
-// UPLOAD CONFIGURATION
-// ============================================================
-
-define('MAX_FILE_SIZE', 5242880);
-define('ALLOWED_IMAGE_TYPES', ['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
-define('ALLOWED_FILE_TYPES', ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf']);
-
-// ============================================================
-// PAGINATION CONFIGURATION
-// ============================================================
-
-define('PLACES_PER_PAGE', 12);
-define('REVIEWS_PER_PAGE', 10);
-
-// ============================================================
-// DATE & TIME CONFIGURATION
-// ============================================================
-
-date_default_timezone_set('Asia/Manila');
-define('DATE_FORMAT', 'F j, Y');
-define('DATETIME_FORMAT', 'F j, Y g:i A');
+define('SITE_NAME', 'TravelBuddy');
+define('SITE_TAGLINE', 'A visual field guide to places worth the detour in Bulacan.');
+define('SITE_URL', 'https://travelbuddyy.liveblog365.com');
 
 // ============================================================
 // USER ROLES
@@ -101,129 +39,75 @@ define('ROLE_TOURIST', 'tourist');
 define('ROLE_GUEST', 'guest');
 
 // ============================================================
-// CACHE CONFIGURATION
+// INPUT LIMITS AND ALLOWED VALUES
+// What the server enforces on user-submitted fields. HTML maxlength
+// attributes and <select> options are only conveniences; the browser
+// can be edited, so these are the source of truth.
 // ============================================================
 
-define('CACHE_ENABLED', false);
-define('CACHE_DURATION', 3600);
+define('MAX_NAME_LENGTH', 100);
+define('MAX_EMAIL_LENGTH', 254);
+define('MAX_LOCATION_LENGTH', 100);
+define('MAX_BIO_LENGTH', 500);
+define('MAX_PASSWORD_BYTES', 72); // bcrypt ignores everything past 72 bytes
+define('MAX_MESSAGE_LENGTH', 2000);
+define('MAX_URL_LENGTH', 500);
+define('MAX_DESTINATION_SLUG_LENGTH', 100);
+define('MAX_DESTINATION_NAME_LENGTH', 150);
+define('MAX_DESTINATION_SHORT_LENGTH', 100); // municipality, field note
+define('MAX_DESTINATION_LOCATION_LENGTH', 255);
+define('MAX_DESTINATION_DESCRIPTION_LENGTH', 2000);
+
+define('CONTACT_SUBJECTS', [
+    'General Inquiry',
+    'Submit a Place',
+    'Correct Information',
+    'Partnership',
+    'Other',
+]);
+
+define('DESTINATION_CATEGORIES', ['Nature', 'Heritage', 'Sacred', 'Resort']);
+
+define('DESTINATION_TAGS', [
+    'Adventure', 'Ancestral home', 'Basilica', 'Cave', 'Cave & river',
+    'Cave & spring', 'Caves & trails', 'Caving', 'Colonial', 'Family',
+    'Farm café', 'Farm stay', 'Glamping', 'Hidden waterfall', 'Hiking',
+    'Hillwalk', 'Historic church', 'History', 'House museum', 'Landmark',
+    'Memorial', 'Monument', 'Museum', 'Parish', 'Pilgrimage',
+    'Private pool', 'Reservoir view', 'Resort', 'Retreat',
+    'Riverside shrine', 'Roadside', 'Shrine', 'Small resort',
+    'Summit hike', 'Viewpoint', 'Waterfall', 'Waterpark', 'Wave pools',
+]);
 
 // ============================================================
-// SECURITY CONFIGURATION
+// SESSION
 // ============================================================
 
-define('PASSWORD_COST', 12);
+define('SESSION_NAME', 'travelbuddy_session');
+define('SESSION_LIFETIME', 3600); // 1 hour
+
+ini_set('session.gc_maxlifetime', SESSION_LIFETIME);
+session_set_cookie_params([
+    'lifetime' => SESSION_LIFETIME,
+    'path'     => '/',
+    // Only sent over HTTPS when the page itself is served over HTTPS,
+    // so a plain-http visit can still log in.
+    'secure'   => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+    'httponly' => true,
+    'samesite' => 'Lax',
+]);
+
+session_name(SESSION_NAME);
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// ============================================================
+// CSRF
+// ============================================================
 
 define('CSRF_TOKEN_NAME', 'csrf_token');
-define('CSRF_TOKEN_LIFETIME', 1800);
-
-// ============================================================
-// EMAIL CONFIGURATION (Brevo transactional email API)
-// ============================================================
-
-define('BREVO_API_KEY', ''); // TODO: from Brevo → SMTP & API → API Keys
-define('BREVO_SENDER_EMAIL', 'travelbuddies79@gmail.com'); // TODO: must be a verified sender in Brevo
-define('BREVO_SENDER_NAME', 'TravelBuddy');
-define('CONTACT_RECIPIENT', 'mjntarin@tip.edu.ph'); // where contact-form messages are delivered
-
-// ============================================================
-// SOCIAL LINKS
-// ============================================================
-
-define('SOCIAL_FACEBOOK', 'https://facebook.com/travelbuddy');
-define('SOCIAL_INSTAGRAM', 'https://instagram.com/travelbuddy');
-define('SOCIAL_TWITTER', 'https://twitter.com/travelbuddy');
-define('SOCIAL_YOUTUBE', 'https://youtube.com/travelbuddy');
-
-// ============================================================
-// API CONFIGURATION
-// ============================================================
-
-define('GOOGLE_MAPS_API_KEY', '');
-
-// ============================================================
-// META DEFAULTS
-// ============================================================
-
-define('META_TITLE', SITE_NAME);
-define('META_DESCRIPTION', SITE_TAGLINE);
-define('META_KEYWORDS', 'travel, bulacan, philippines, tourism, destinations, heritage, nature');
-
-define('OG_TITLE', SITE_NAME);
-define('OG_DESCRIPTION', SITE_TAGLINE);
-define('OG_IMAGE', SITE_URL . '/assets/images/og-image.jpg');
-
-// ============================================================
-// DATABASE CONNECTION FUNCTION
-// ============================================================
-
-function getDBConnection() {
-    try {
-        $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
-        $options = [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false,
-        ];
-        return new PDO($dsn, DB_USER, DB_PASS, $options);
-    } catch (PDOException $e) {
-        error_log("Database connection failed: " . $e->getMessage());
-        return false;
-    }
-}
-
-// ============================================================
-// SESSION HELPER FUNCTIONS
-// ============================================================
-
-function isLoggedIn() {
-    return isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
-}
-
-function getCurrentUser() {
-    if (!isLoggedIn()) {
-        return null;
-    }
-    
-    return [
-        'id' => $_SESSION['user_id'] ?? null,
-        'name' => $_SESSION['user_name'] ?? null,
-        'email' => $_SESSION['user_email'] ?? null,
-        'role' => $_SESSION['user_role'] ?? ROLE_GUEST,
-        'initials' => $_SESSION['user_initials'] ?? null,
-        'location' => $_SESSION['user_location'] ?? null,
-        'created_at' => $_SESSION['user_created_at'] ?? null,
-        'profile_photo' => $_SESSION['user_profile_photo'] ?? null,
-    ];
-}
-
-/**
- * Fetch full user data from database (useful for profile)
- */
-function getUserData($userId) {
-    $db = getDBConnection();
-    if (!$db) return null;
-    // FIX: bio and profile_photo were missing from this SELECT, so
-    // userprofile.php could never display a saved bio or photo even
-    // though update_profile.php was writing them to the DB correctly.
-    $stmt = $db->prepare("SELECT id, name, email, location, bio, profile_photo, created_at FROM users WHERE id = ?");
-    $stmt->execute([$userId]);
-    return $stmt->fetch();
-}
-
-function getUserInitials($name) {
-    $initials = '';
-    $words = explode(' ', trim($name));
-    foreach ($words as $word) {
-        if (!empty($word)) {
-            $initials .= strtoupper(mb_substr($word, 0, 1));
-        }
-    }
-    return mb_substr($initials, 0, 2);
-}
-
-// ============================================================
-// CSRF TOKEN FUNCTIONS
-// ============================================================
+define('CSRF_TOKEN_LIFETIME', 1800); // 30 minutes
 
 function generateCSRFToken() {
     // Reuse a live token instead of minting a new one on every include,
@@ -255,16 +139,94 @@ function verifyCSRFToken($token) {
 }
 
 // ============================================================
-// URL HELPER FUNCTIONS
+// DATABASE CONNECTION
 // ============================================================
 
-function url($path = '') {
-    return SITE_URL . '/' . ltrim($path, '/');
+function getDBConnection() {
+    try {
+        $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+        $options = [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+        ];
+        return new PDO($dsn, DB_USER, DB_PASS, $options);
+    } catch (PDOException $e) {
+        error_log("Database connection failed: " . $e->getMessage());
+        return false;
+    }
+}
+
+// ============================================================
+// SESSION HELPERS
+// ============================================================
+
+function isLoggedIn() {
+    return isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
+}
+
+function getCurrentUser() {
+    if (!isLoggedIn()) {
+        return null;
+    }
+
+    return [
+        'id' => $_SESSION['user_id'] ?? null,
+        'name' => $_SESSION['user_name'] ?? null,
+        'email' => $_SESSION['user_email'] ?? null,
+        'role' => $_SESSION['user_role'] ?? ROLE_GUEST,
+        'initials' => $_SESSION['user_initials'] ?? null,
+        'location' => $_SESSION['user_location'] ?? null,
+        'created_at' => $_SESSION['user_created_at'] ?? null,
+        'profile_photo' => $_SESSION['user_profile_photo'] ?? null,
+    ];
 }
 
 /**
+ * Fetch full user data from the database (used by the profile page).
+ */
+function getUserData($userId) {
+    $db = getDBConnection();
+    if (!$db) return null;
+    $stmt = $db->prepare("SELECT id, name, email, location, bio, profile_photo, created_at FROM users WHERE id = ?");
+    $stmt->execute([$userId]);
+    return $stmt->fetch();
+}
+
+function getUserInitials($name) {
+    $initials = '';
+    $words = explode(' ', trim($name));
+    foreach ($words as $word) {
+        if (!empty($word)) {
+            $initials .= strtoupper(mb_substr($word, 0, 1));
+        }
+    }
+    return mb_substr($initials, 0, 2);
+}
+
+// ============================================================
+// REDIRECTS
+// ============================================================
+
+/**
+ * Send the visitor back to auth.php after a failed login/signup, keeping
+ * the same tab open and refilling what they'd already typed. $fields
+ * end up in the URL, so they should only ever contain non-sensitive
+ * values (name, email, location) - never a password.
+ */
+function redirectAuthError($tab, $error, $fields = []) {
+    $params = array_merge(['tab' => $tab, 'error' => $error], $fields);
+    header('Location: auth.php?' . http_build_query($params));
+    exit;
+}
+
+// ============================================================
+// EMAIL
+// ============================================================
+
+/**
  * Sends one transactional email through Brevo's HTTP API (POST over
- * HTTPS, port 443) — never SMTP, so hosting-provider port restrictions
+ * HTTPS, port 443) - never SMTP, so hosting-provider port restrictions
  * on 25/465/587 can't affect it. Throws on any failure (missing curl,
  * network error, or a non-2xx response from Brevo) so the caller can
  * decide how to tell the visitor, rather than silently doing nothing.
@@ -308,117 +270,11 @@ function sendTransactionalEmail($toEmail, $toName, $subject, $textBody, $replyTo
     }
 }
 
-function redirect($url, $status = 302) {
-    header('Location: ' . $url, true, $status);
-    exit();
-}
-
-/**
- * Send the visitor back to auth.php after a failed login/signup, keeping
- * the same tab open and refilling what they'd already typed. $fields
- * should only ever contain non-sensitive values (name, email, location) —
- * never a password.
- */
-function redirectAuthError($tab, $error, $fields = []) {
-    $params = array_merge(['tab' => $tab, 'error' => $error], $fields);
-    header('Location: auth.php?' . http_build_query($params));
-    exit;
-}
-
 // ============================================================
-// SECURITY HELPER FUNCTIONS
-// ============================================================
-
-function sanitize($input) {
-    return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
-}
-
-function escape($output) {
-    return htmlspecialchars($output, ENT_QUOTES, 'UTF-8');
-}
-
-// ============================================================
-// PAGE ACTIVE STATE HELPER
-// ============================================================
-
-function isActive($page, $active) {
-    return $page === $active ? 'active' : '';
-}
-
-// ============================================================
-// THEME FUNCTIONS
-// ============================================================
-
-function getThemeColors() {
-    return [
-        'forest-green' => '#1a4332',
-        'forest-green-dark' => '#123527',
-        'terracotta' => '#c45c26',
-        'terracotta-dark' => '#a84d1f',
-        'amber' => '#f59e0b',
-        'cream' => '#fef9f0',
-        'sand' => '#e8d5b7',
-    ];
-}
-
-// ============================================================
-// ERROR HANDLING
-// ============================================================
-
-function showError($message, $isCritical = false) {
-    if ($isCritical && ENVIRONMENT === 'production') {
-        $message = 'An error occurred. Please try again later.';
-    }
-    echo '<div class="error-message" style="padding: 20px; margin: 20px; background: #fee; border: 1px solid #c45c26; border-radius: 8px; color: #1a4332;">';
-    echo '<strong>Error:</strong> ' . htmlspecialchars($message);
-    echo '</div>';
-}
-
-// ============================================================
-// MAINTENANCE MODE
-// ============================================================
-
-define('MAINTENANCE_MODE', false);
-define('MAINTENANCE_IP_WHITELIST', ['127.0.0.1', '::1']);
-
-function isMaintenanceMode() {
-    if (!MAINTENANCE_MODE) {
-        return false;
-    }
-    $ip = $_SERVER['REMOTE_ADDR'] ?? '';
-    return !in_array($ip, MAINTENANCE_IP_WHITELIST, true);
-}
-
-// ============================================================
-// INITIALIZATION
-// ============================================================
-
-date_default_timezone_set('Asia/Manila');
-mb_internal_encoding('UTF-8');
-
-$directories = [UPLOAD_PATH, INCLUDES_PATH];
-foreach ($directories as $dir) {
-    if (!file_exists($dir)) {
-        @mkdir($dir, 0755, true);
-    }
-}
-
-// ============================================================
-// LOGGING FUNCTION
+// LOGGING
 // ============================================================
 
 function logMessage($message, $level = 'info') {
     $logEntry = date('Y-m-d H:i:s') . " [$level] " . $message;
     error_log($logEntry);
 }
-
-// ============================================================
-// 404 HANDLER
-// ============================================================
-
-function show404() {
-    http_response_code(404);
-    include ROOT_PATH . '/404.php';
-    exit();
-}
-?>

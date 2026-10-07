@@ -38,6 +38,7 @@ $csrf_token = generateCSRFToken();
 
 $reviewCount = 0;
 $savedCount = 0;
+$visitedCount = 0;
 
 $recentActivity = [];
 $savedPlaces = [];
@@ -77,12 +78,27 @@ try {
 
 
         // =====================================
-        // RECENT REVIEWS / ACTIVITY
+        // COUNT VISITED PLACES
+        // =====================================
+
+        $stmt = $db->prepare("
+            SELECT COUNT(*)
+            FROM visits
+            WHERE user_id = ?
+        ");
+
+        $stmt->execute([$user['id']]);
+        $visitedCount = (int) $stmt->fetchColumn();
+
+
+        // =====================================
+        // RECENT ACTIVITY — reviews and visits,
+        // merged into one feed and sorted by date
         // =====================================
 
         $stmt = $db->prepare("
             SELECT
-                reviews.id,
+                'review' AS type,
                 reviews.rating,
                 reviews.comment,
                 reviews.created_at,
@@ -100,7 +116,37 @@ try {
         ");
 
         $stmt->execute([$user['id']]);
-        $recentActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $reviewActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $stmt = $db->prepare("
+            SELECT
+                'visit' AS type,
+                NULL AS rating,
+                NULL AS comment,
+                visits.created_at,
+                destinations.name AS destination_name
+            FROM visits
+
+            INNER JOIN destinations
+                ON visits.destination_id = destinations.id
+
+            WHERE visits.user_id = ?
+
+            ORDER BY visits.created_at DESC
+
+            LIMIT 10
+        ");
+
+        $stmt->execute([$user['id']]);
+        $visitActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $recentActivity = array_merge($reviewActivity, $visitActivity);
+
+        usort($recentActivity, function ($a, $b) {
+            return strtotime($b['created_at']) <=> strtotime($a['created_at']);
+        });
+
+        $recentActivity = array_slice($recentActivity, 0, 10);
 
 
         // =====================================
@@ -134,6 +180,7 @@ try {
     // Keep the profile functional if a database query fails
     $reviewCount = 0;
     $savedCount = 0;
+    $visitedCount = 0;
     $recentActivity = [];
     $savedPlaces = [];
 }
@@ -176,7 +223,7 @@ $error = isset($_GET['error'])
 
     <link
         rel="stylesheet"
-        href="style.css" />
+        href="style.css?v=<?= filemtime(__DIR__ . '/style.css') ?>" />
 
 </head>
 
@@ -335,7 +382,7 @@ $error = isset($_GET['error'])
             <div class="stat-box">
 
                 <strong>
-                    0
+                    <?= $visitedCount ?>
                 </strong>
 
                 <span>
@@ -441,7 +488,7 @@ $error = isset($_GET['error'])
 
                                     <div class="activity-icon">
 
-                                        ✏️
+                                        <?= $activity['type'] === 'visit' ? '🚩' : '✏️' ?>
 
                                     </div>
 
@@ -450,7 +497,7 @@ $error = isset($_GET['error'])
 
                                         <div class="headline">
 
-                                            Reviewed
+                                            <?= $activity['type'] === 'visit' ? 'Visited' : 'Reviewed' ?>
 
                                             <b>
 
@@ -461,27 +508,31 @@ $error = isset($_GET['error'])
                                             </b>
 
 
-                                            <span class="stars">
+                                            <?php if ($activity['type'] !== 'visit'): ?>
 
-                                                <?php
+                                                <span class="stars">
 
-                                                $rating =
-                                                    (int) $activity['rating'];
+                                                    <?php
 
-                                                for (
-                                                    $i = 1;
-                                                    $i <= 5;
-                                                    $i++
-                                                ) {
+                                                    $rating =
+                                                        (int) $activity['rating'];
 
-                                                    echo $i <= $rating
-                                                        ? '★'
-                                                        : '☆';
-                                                }
+                                                    for (
+                                                        $i = 1;
+                                                        $i <= 5;
+                                                        $i++
+                                                    ) {
 
-                                                ?>
+                                                        echo $i <= $rating
+                                                            ? '★'
+                                                            : '☆';
+                                                    }
 
-                                            </span>
+                                                    ?>
+
+                                                </span>
+
+                                            <?php endif; ?>
 
                                         </div>
 
@@ -720,9 +771,7 @@ $error = isset($_GET['error'])
                                     type="text"
                                     name="location"
                                     id="settingsLocation"
-                                    value="<?= htmlspecialchars(
-                                                $userLoc
-                                            ) ?>" />
+                                    value="<?= htmlspecialchars($userLoc === 'Not set' ? '' : $userLoc) ?>" />
 
                             </div>
 
@@ -733,6 +782,23 @@ $error = isset($_GET['error'])
                             <h3 class="section-subhead">
                                 Change Password
                             </h3>
+
+
+                            <div class="field">
+
+                                <label>
+                                    Current Password
+                                    <span class="optional">(required to change email or password)</span>
+                                </label>
+
+                                <input
+                                    type="password"
+                                    name="current_password"
+                                    id="settingsCurrentPassword"
+                                    autocomplete="current-password"
+                                    placeholder="••••••••" />
+
+                            </div>
 
 
                             <div class="field">
@@ -782,14 +848,49 @@ $error = isset($_GET['error'])
 
                             <hr class="divider" />
 
-
-                            <button
-                                class="delete-link"
-                                type="button">
-                                Delete Account
-                            </button>
-
                         </form>
+
+
+                        <details class="delete-account">
+
+                            <summary class="delete-link">
+                                Delete Account
+                            </summary>
+
+                            <form
+                                action="delete_account.php"
+                                method="post"
+                                onsubmit="return confirm('Delete your account permanently? This cannot be undone.');">
+
+                                <input
+                                    type="hidden"
+                                    name="csrf_token"
+                                    value="<?= htmlspecialchars($csrf_token) ?>" />
+
+                                <div class="field">
+
+                                    <label>
+                                        Confirm your password
+                                    </label>
+
+                                    <input
+                                        type="password"
+                                        name="current_password"
+                                        autocomplete="current-password"
+                                        placeholder="••••••••"
+                                        required />
+
+                                </div>
+
+                                <button
+                                    class="delete-link"
+                                    type="submit">
+                                    Permanently delete my account
+                                </button>
+
+                            </form>
+
+                        </details>
 
                     </div>
 
@@ -898,6 +999,7 @@ $error = isset($_GET['error'])
         <textarea
             id="bioTextarea"
             name="bio"
+            maxlength="<?= MAX_BIO_LENGTH ?>"
             placeholder="Tell other travelers about yourself..."><?= htmlspecialchars(
                 $userData['bio'] ?? ''
             ) ?></textarea>
@@ -923,8 +1025,16 @@ $error = isset($_GET['error'])
     </main>
 
 
+    <?php if ($error !== ''): ?>
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                showToast(<?= json_encode($_GET['error']) ?>, "error");
+            });
+        </script>
+    <?php endif; ?>
+
     <script
-        src="script.js"
+        src="script.js?v=<?= filemtime(__DIR__ . '/script.js') ?>"
         defer></script>
 
 </body>

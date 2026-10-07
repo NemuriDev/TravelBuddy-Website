@@ -4,6 +4,15 @@ $activePage = 'destination';
 $loggedIn = isLoggedIn();
 $user = getCurrentUser();
 $csrf_token = generateCSRFToken();
+
+$db = getDBConnection();
+if (!$db) {
+    http_response_code(500);
+    exit('Database unavailable');
+}
+$stats = $db->query("SELECT COUNT(*) AS places, COUNT(DISTINCT municipality) AS towns FROM destinations")->fetch();
+$placeCount = (int) $stats['places'];
+$townCount = (int) $stats['towns'];
 ?>
 <!doctype html>
 <html lang="en">
@@ -13,13 +22,13 @@ $csrf_token = generateCSRFToken();
     <meta name="description" content="TravelBuddies — a visual field guide to places worth the detour in Bulacan." />
     <meta property="og:title" content="TravelBuddies — Bulacan Field Guide" />
     <meta property="og:description" content="A field guide for weekends with room to breathe." />
-    <title>TravelBuddies — Bulacan Field Guide</title>
+    <title>TravelBuddy — Bulacan Field Guide</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap"
         rel="stylesheet" />
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="style.css?v=<?= filemtime(__DIR__ . '/style.css') ?>">
 </head>
 
 <body>
@@ -34,7 +43,7 @@ $csrf_token = generateCSRFToken();
                     bends, old stories, and the roads between them.</p>
                 <div class="hero-actions">
                     <a class="primary-button" href="#places">Start wandering <span aria-hidden="true">↗</span></a>
-                    <span class="hero-count">40 places / 20 towns</span>
+                    
                 </div>
             </div>
             <div class="hero-art reveal" style="--delay: .12s">
@@ -87,7 +96,7 @@ $csrf_token = generateCSRFToken();
             </div>
 
             <div class="results-meta">
-                <p id="results-count">40 entries / all municipalities</p>
+                <p id="results-count"><?= $placeCount ?> entries / all municipalities</p>
                 <p class="curious-label"><span aria-hidden="true">✦</span> Locally curious</p>
             </div>
 
@@ -111,7 +120,7 @@ $csrf_token = generateCSRFToken();
                     <p>Pick a town near your route. Then look at what it has been quietly keeping.</p>
                 </div>
                 <div><span>02 /</span>
-                    <p>Save the places that feel like your kind of Saturday. Your shortlist stays in this browser.</p>
+                    <p>Save the places that feel like your kind of Saturday. Your shortlist is saved to your account.</p>
                 </div>
                 <div><span>03 /</span>
                     <p>Open a note for the small details: when to go, where it is, and what to bring.</p>
@@ -123,22 +132,41 @@ $csrf_token = generateCSRFToken();
     </main>
 
     <div class="modal-backdrop hidden" id="detail-modal" role="presentation">
-        <div class="detail-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-            <div class="detail-image image-frame">
-                <img id="modal-image"
-                    src="https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2c/Bulacan_Provincial_Capitol_Building%2C_July_2023.jpg/1280px-Bulacan_Provincial_Capitol_Building%2C_July_2023.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail"
-                    alt="" />
-                <span class="image-fallback" aria-hidden="true">◉</span>
+        <div class="detail-modal card-layout" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <button class="close-button" id="close-modal" type="button"
+                aria-label="Close destination details">×</button>
+            <div class="detail-gallery">
+                <div class="detail-gallery-main image-frame">
+                    <img id="modal-image" src="" alt="" />
+                    <span class="image-fallback" aria-hidden="true">◉</span>
+                </div>
+                <div class="detail-gallery-thumbs" id="modal-gallery"></div>
             </div>
             <div class="detail-content">
-                <button class="close-button" id="close-modal" type="button"
-                    aria-label="Close destination details">×</button>
                 <p class="section-kicker" id="modal-kicker"></p>
-                <h2 id="modal-title"></h2>
+                <div class="detail-title-row">
+                    <h2 id="modal-title"></h2>
+                    <span class="modal-rating" id="modal-rating"></span>
+                </div>
                 <div class="modal-location"><span aria-hidden="true">⌖</span> <span id="modal-municipality"></span>
                 </div>
                 <p class="modal-description" id="modal-description"></p>
                 <div class="modal-tags" id="modal-tags"></div>
+
+                <div class="modal-facts">
+                    <div>
+                        <p>Where to find it</p><strong id="modal-location"></strong>
+                        <a id="modal-map-link" class="modal-map-link" href="#" target="_blank" rel="noopener">Open in Google Maps ↗</a>
+                    </div>
+                    <div>
+                        <p>Field notes</p><strong id="modal-time"></strong>
+                    </div>
+                </div>
+
+                <div class="modal-eco hidden" id="modal-eco">
+                    <p>Ecological Guidelines</p>
+                    <ul id="modal-eco-list"></ul>
+                </div>
 
                 <div class="reviews-section">
                     <div class="reviews-header">
@@ -150,7 +178,7 @@ $csrf_token = generateCSRFToken();
                         <p class="review-form-hint hidden" id="review-form-hint">You've already reviewed this place — saving will update your review.</p>
                         <p class="review-form-label">Your Rating</p>
                         <div class="star-input" id="star-input" role="radiogroup" aria-label="Your rating"></div>
-                        <textarea id="review-text" placeholder="Share your experience..."></textarea>
+                        <textarea id="review-text" maxlength="1000" placeholder="Share your experience..."></textarea>
                         <div class="review-form-actions">
                             <button class="secondary-button" id="cancel-review-btn" type="button">Cancel</button>
                             <button class="primary-button btn-terracotta" id="submit-review-btn" type="button">Submit Review</button>
@@ -160,22 +188,16 @@ $csrf_token = generateCSRFToken();
                     <div class="review-list" id="review-list"></div>
                 </div>
 
-                <div class="modal-facts">
-                    <div>
-                        <p>Where to find it</p><strong id="modal-location"></strong>
-                    </div>
-                    <div>
-                        <p>Field note</p><strong id="modal-time"></strong>
-                    </div>
-                </div>
+                <p class="saved-note">A guide is only as good as the care you bring to the place. Check
+                    local access, weather, and current opening hours before you go.</p>
+
                 <div class="modal-actions">
                     <button class="primary-button" id="modal-favorite" type="button"></button>
+                    <button class="secondary-button" id="modal-visited" type="button"></button>
                     <button class="secondary-button" id="modal-share" type="button"><span aria-hidden="true">⌁</span>
                         <span id="share-label">Share the note</span></button>
                     <button class="secondary-button admin-only hidden" id="modal-admin-edit" type="button"><span aria-hidden="true">✎</span> Edit Place</button>
                 </div>
-                <p class="saved-note">A guide is only as good as the care you bring to the place. Check local access,
-                    weather, and current opening hours before you go.</p>
             </div>
         </div>
     </div>
@@ -207,54 +229,18 @@ $csrf_token = generateCSRFToken();
                     <div class="field">
                         <label>Category</label>
                         <select id="admin-field-category">
-                            <option value="Nature">Nature</option>
-                            <option value="Heritage">Heritage</option>
-                            <option value="Sacred">Sacred</option>
-                            <option value="Resort">Resort</option>
+                            <?php foreach (DESTINATION_CATEGORIES as $option): ?>
+                                <option value="<?= htmlspecialchars($option) ?>"><?= htmlspecialchars($option) ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
 
                     <div class="field">
                         <label>Tag</label>
                         <select id="admin-field-tag">
-                            <option value="Adventure">Adventure</option>
-                            <option value="Ancestral home">Ancestral home</option>
-                            <option value="Basilica">Basilica</option>
-                            <option value="Cave">Cave</option>
-                            <option value="Cave & river">Cave & river</option>
-                            <option value="Cave & spring">Cave & spring</option>
-                            <option value="Caves & trails">Caves & trails</option>
-                            <option value="Caving">Caving</option>
-                            <option value="Colonial">Colonial</option>
-                            <option value="Family">Family</option>
-                            <option value="Farm café">Farm café</option>
-                            <option value="Farm stay">Farm stay</option>
-                            <option value="Glamping">Glamping</option>
-                            <option value="Hidden waterfall">Hidden waterfall</option>
-                            <option value="Hiking">Hiking</option>
-                            <option value="Hillwalk">Hillwalk</option>
-                            <option value="Historic church">Historic church</option>
-                            <option value="History">History</option>
-                            <option value="House museum">House museum</option>
-                            <option value="Landmark">Landmark</option>
-                            <option value="Memorial">Memorial</option>
-                            <option value="Monument">Monument</option>
-                            <option value="Museum">Museum</option>
-                            <option value="Parish">Parish</option>
-                            <option value="Pilgrimage">Pilgrimage</option>
-                            <option value="Private pool">Private pool</option>
-                            <option value="Reservoir view">Reservoir view</option>
-                            <option value="Resort">Resort</option>
-                            <option value="Retreat">Retreat</option>
-                            <option value="Riverside shrine">Riverside shrine</option>
-                            <option value="Roadside">Roadside</option>
-                            <option value="Shrine">Shrine</option>
-                            <option value="Small resort">Small resort</option>
-                            <option value="Summit hike">Summit hike</option>
-                            <option value="Viewpoint">Viewpoint</option>
-                            <option value="Waterfall">Waterfall</option>
-                            <option value="Waterpark">Waterpark</option>
-                            <option value="Wave pools">Wave pools</option>
+                            <?php foreach (DESTINATION_TAGS as $option): ?>
+                                <option value="<?= htmlspecialchars($option) ?>"><?= htmlspecialchars($option) ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                 </div>
@@ -270,15 +256,37 @@ $csrf_token = generateCSRFToken();
                 </div>
 
                 <div class="field">
-                    <label>Photo</label>
+                    <label>Main photo</label>
                     <input type="url" id="admin-field-image-url" placeholder="Paste an image URL" />
                     <p class="admin-field-or">— or —</p>
                     <input type="file" id="admin-field-image-file" accept="image/jpeg,image/png,image/webp" />
                 </div>
 
                 <div class="field">
+                    <label>Gallery photos <span class="optional">(up to 3)</span></label>
+                    <?php for ($i = 1; $i <= 3; $i++): ?>
+                        <div class="admin-gallery-slot">
+                            <input type="url" class="admin-gallery-url" placeholder="Photo <?= $i + 1 ?> — paste an image URL" />
+                            <input type="file" class="admin-gallery-file" accept="image/jpeg,image/png,image/webp" />
+                        </div>
+                    <?php endfor; ?>
+                </div>
+
+                <div class="field">
+                    <label>Google Maps link</label>
+                    <input type="url" id="admin-field-maps-url" placeholder="Paste the place's Google Maps link" />
+                    <p class="admin-field-hint">Open the place on Google Maps, tap Share, and paste the link here.</p>
+                </div>
+
+                <div class="field">
                     <label>Description</label>
                     <textarea id="admin-field-description" rows="4" placeholder="A sentence or two for the guide card."></textarea>
+                </div>
+
+                <div class="field">
+                    <label>Ecological guidelines <span class="optional">(Required)</span></label>
+                    <textarea id="admin-field-eco" rows="4" maxlength="1000" placeholder="One guideline per line, e.g. Carry out all of your trash."></textarea>
+                    <p class="admin-field-hint">Leave empty to hide the section for this place.</p>
                 </div>
 
                 <p class="admin-form-error hidden" id="admin-form-error"></p>
@@ -291,6 +299,6 @@ $csrf_token = generateCSRFToken();
         </div>
     </div>
 
-    <script src="script.js" defer></script>
+    <script src="script.js?v=<?= filemtime(__DIR__ . '/script.js') ?>" defer></script>
 </body>
 </html>

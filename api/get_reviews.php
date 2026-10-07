@@ -12,7 +12,7 @@ if (!$db) {
 }
 
 $stmt = $db->prepare("
-    SELECT reviews.rating, reviews.comment, reviews.created_at, users.name
+    SELECT reviews.user_id, reviews.rating, reviews.comment, reviews.created_at, users.name, users.profile_photo
     FROM reviews
     INNER JOIN destinations ON reviews.destination_id = destinations.id
     INNER JOIN users ON reviews.user_id = users.id
@@ -22,37 +22,30 @@ $stmt = $db->prepare("
 $stmt->execute([$slug]);
 $rows = $stmt->fetchAll();
 
-$reviews = array_map(function ($row) {
-    return [
+$currentUserId = isLoggedIn() ? getCurrentUser()['id'] : null;
+$mine = null;
+
+$reviews = array_map(function ($row) use ($currentUserId, &$mine) {
+    $review = [
         'name' => $row['name'],
         'initials' => getUserInitials($row['name']),
+        'photo' => $row['profile_photo'],
         'date' => date('F Y', strtotime($row['created_at'])),
         'rating' => (int) $row['rating'],
         'text' => $row['comment'],
     ];
-}, $rows);
 
-// If the visitor is logged in and already reviewed this place, hand
-// their own rating/comment back separately so the review form can
-// open pre-filled instead of blank — editing becomes visible instead
-// of a second submission silently overwriting the first.
-$mine = null;
-if (isLoggedIn()) {
-    $user = getCurrentUser();
-    $stmt = $db->prepare("
-        SELECT reviews.rating, reviews.comment
-        FROM reviews
-        INNER JOIN destinations ON reviews.destination_id = destinations.id
-        WHERE destinations.slug = ? AND reviews.user_id = ?
-    ");
-    $stmt->execute([$slug, $user['id']]);
-    $row = $stmt->fetch();
-    if ($row) {
+    // Flag the viewer's own review while we're already looping the
+    // rows, rather than a second query — used to pre-fill the form
+    // and switch it into "edit" mode.
+    if ($currentUserId !== null && (int) $row['user_id'] === (int) $currentUserId) {
         $mine = [
             'rating' => (int) $row['rating'],
             'text' => $row['comment'],
         ];
     }
-}
+
+    return $review;
+}, $rows);
 
 apiRespond(true, ['reviews' => $reviews, 'mine' => $mine]);

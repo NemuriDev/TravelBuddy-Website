@@ -8,7 +8,7 @@ if (!isLoggedIn()) {
 $body = apiReadJsonBody();
 
 if (!isset($body['csrf_token']) || !verifyCSRFToken($body['csrf_token'])) {
-    apiError('Invalid CSRF token', 403);
+    apiError('Your session expired. Please refresh the page and try again.', 403);
 }
 
 $slug = trim($body['slug'] ?? '');
@@ -43,7 +43,7 @@ if ($stmt->rowCount() > 0) {
     apiRespond(true, ['favorited' => false]);
 }
 
-$stmt = $db->prepare("INSERT INTO favorites (user_id, destination_id) VALUES (?, ?)");
+$stmt = $db->prepare("INSERT IGNORE INTO favorites (user_id, destination_id) VALUES (?, ?)");
 $stmt->execute([$user['id'], $destinationId]);
 
 apiRespond(true, ['favorited' => true]);

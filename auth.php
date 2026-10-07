@@ -21,19 +21,35 @@ $activeTab = (($_GET['tab'] ?? 'login') === 'signup') ? 'signup' : 'login';
 $oldEmail = htmlspecialchars($_GET['email'] ?? '');
 $oldName = htmlspecialchars($_GET['name'] ?? '');
 $oldLocation = htmlspecialchars($_GET['location'] ?? '');
+
+// Real numbers for the auth-stats strip, instead of hardcoded copy.
+// Place count floors at 40 (the guide's built-in list) in case the
+// database has fewer seeded rows than that at any given moment.
+$reviewCount = 0;
+$placeCount = 40;
+$avgRating = null;
+
+$db = getDBConnection();
+if ($db) {
+    $reviewCount = (int) $db->query("SELECT COUNT(*) FROM reviews")->fetchColumn();
+    $placeCount = max(40, (int) $db->query("SELECT COUNT(*) FROM destinations")->fetchColumn());
+
+    $avg = $db->query("SELECT AVG(rating) FROM reviews")->fetchColumn();
+    $avgRating = $avg !== null ? round((float) $avg, 1) : null;
+}
 ?>
 <!doctype html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TravelBuddies — Log In</title>
+    <title>TravelBuddy — Log In</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap"
         rel="stylesheet" />
-    <link rel="stylesheet" href="style.css?v=6">
+    <link rel="stylesheet" href="style.css?v=<?= filemtime(__DIR__ . '/style.css') ?>">
 </head>
 <body>
     <main class="page-shell">
@@ -53,14 +69,14 @@ $oldLocation = htmlspecialchars($_GET['location'] ?? '');
                     <span class="image-fallback" aria-hidden="true">◉</span>
                 </div>
                 <p class="section-kicker" style="margin-top: 22px;">Province of Bulacan</p>
-                <h1 style="font-family: var(--display); font-size: clamp(32px, 4vw, 44px); font-weight: 600; letter-spacing: -.02em; line-height: 1.05; margin-top: 10px; max-width: 460px; color: var(cream);">
+                <h1 style="font-family: var(--display); font-size: clamp(32px, 4vw, 44px); font-weight: 600; letter-spacing: -.02em; line-height: 1.05; margin-top: 10px; max-width: 460px; color: var(--forest-green);">
                     Your gateway to Bulacan's wonders.
                 </h1>
                 <p class="hero-description" style="max-width: 440px;">Become a traveler discovering heritage sites, natural escapes, and vibrant festivals across the province.</p>
                 <div class="auth-stats">
-                    <div class="auth-stat"><strong>500+</strong><span>Reviews</span></div>
-                    <div class="auth-stat"><strong>40+</strong><span>Places</span></div>
-                    <div class="auth-stat"><strong>4.8★</strong><span>Rating</span></div>
+                    <div class="auth-stat"><strong><?= $reviewCount ?></strong><span>Reviews</span></div>
+                    <div class="auth-stat"><strong><?= $placeCount ?></strong><span>Places</span></div>
+                    <div class="auth-stat"><strong><?= $avgRating !== null ? htmlspecialchars($avgRating) . '★' : 'New' ?></strong><span>Rating</span></div>
                 </div>
             </div>
 
@@ -139,6 +155,6 @@ $oldLocation = htmlspecialchars($_GET['location'] ?? '');
         <?php include __DIR__ . '/footer.php'; ?>
     </main>
 
-    <script src="script.js" defer></script>
+    <script src="script.js?v=<?= filemtime(__DIR__ . '/script.js') ?>" defer></script>
 </body>
 </html>

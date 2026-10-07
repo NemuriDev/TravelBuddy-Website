@@ -13,7 +13,7 @@ if ($user['role'] !== ROLE_ADMIN) {
 $body = apiReadJsonBody();
 
 if (!isset($body['csrf_token']) || !verifyCSRFToken($body['csrf_token'])) {
-    apiError('Invalid CSRF token', 403);
+    apiError('Your session expired. Please refresh the page and try again.', 403);
 }
 
 $slug = trim($body['slug'] ?? '');
@@ -31,7 +31,7 @@ try {
     $stmt->execute([$slug]);
 } catch (PDOException $e) {
     error_log('admin_delete_destination failed: ' . $e->getMessage());
-    apiError('Could not delete — it may have reviews or saves attached', 500);
+    apiError('Could not delete this place', 500);
 }
 
 apiRespond(true);

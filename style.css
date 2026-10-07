@@ -1,7 +1,7 @@
 /* ===================================================================
-   TravelBuddies — shared stylesheet
-   Forest green / terracotta / amber theme.
-   One token system, used by every page (auth, guide, profile, home).
+    TravelBuddies — shared stylesheet
+    Forest green / terracotta / amber theme.
+    used by every page (auth, guide, profile, home).
    =================================================================== */
 
 :root {
@@ -736,6 +736,107 @@ a {
     position: absolute;
 }
 
+/* Photo slider: native scroll-snap, so touch swiping works for free.
+   Each .card-slide is its own .image-frame, which keeps the existing
+   per-image fallback working. */
+.card-slider {
+    height: 100%;
+}
+
+.card-slides {
+    display: flex;
+    height: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+}
+
+.card-slides::-webkit-scrollbar {
+    display: none;
+}
+
+.card-slide {
+    display: block;
+    flex: 0 0 100%;
+    height: 100%;
+    scroll-snap-align: start;
+}
+
+/* Badges sit over a linked photo; let clicks fall through to it. */
+.card-media--link .card-badge {
+    pointer-events: none;
+}
+
+.slider-arrow {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    display: grid;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    color: var(--forest-green);
+    background: rgba(254, 249, 240, .92);
+    font-size: 20px;
+    line-height: 1;
+    opacity: 0;
+    transform: translateY(-50%);
+    cursor: pointer;
+    transition: opacity .2s ease, background .2s ease;
+}
+
+.slider-prev {
+    left: 10px;
+}
+
+.slider-next {
+    right: 10px;
+}
+
+.card-media:hover .slider-arrow,
+.card-media:focus-within .slider-arrow {
+    opacity: 1;
+}
+
+.slider-arrow:hover {
+    background: var(--amber);
+}
+
+@media (hover: none) {
+    .slider-arrow {
+        opacity: 1;
+    }
+}
+
+.slider-dots {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    pointer-events: none;
+}
+
+.slider-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .55);
+    transition: background .2s ease, transform .2s ease;
+}
+
+.slider-dot.is-active {
+    background: #fff;
+    transform: scale(1.25);
+}
+
 .card-badge {
     position: absolute;
     top: 14px;
@@ -971,10 +1072,6 @@ a {
 }
 
 .detail-modal {
-    display: grid;
-    width: min(920px, 100%);
-    max-height: min(680px, 92vh);
-    grid-template-columns: .92fr 1.08fr;
     overflow: auto;
     background: var(--cream);
     border-radius: 18px;
@@ -982,13 +1079,8 @@ a {
     animation: modal-in .25s ease both;
 }
 
-.detail-image {
-    min-height: 550px;
-}
-
 .detail-content {
     position: relative;
-    padding: 42px;
 }
 
 .close-button {
@@ -1015,7 +1107,6 @@ a {
 
 .detail-content h2 {
     max-width: 500px;
-    margin: 20px 35px 0 0;
     font-family: var(--display);
     font-size: clamp(34px, 4vw, 48px);
     font-weight: 700;
@@ -1208,6 +1299,15 @@ a {
     color: var(--cream);
     font-weight: 700;
     font-size: .78rem;
+    overflow: hidden;
+}
+
+.review-avatar-image {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    object-fit: cover;
 }
 
 .review-name {
@@ -1243,7 +1343,6 @@ a {
 
 .modal-facts {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
     gap: 22px;
     margin-top: 26px;
     padding: 20px 0;
@@ -1273,8 +1372,6 @@ a {
 }
 
 .saved-note {
-    max-width: 510px;
-    margin: 22px 0 0;
     color: var(--medium-gray);
     font-size: .72rem;
     line-height: 1.7;
@@ -1878,6 +1975,14 @@ a {
     border: none;
 }
 
+.delete-account summary {
+    cursor: pointer;
+}
+
+.delete-account form {
+    margin-top: 14px;
+}
+
 /* ===================================================================
    Motion + a11y
    =================================================================== */
@@ -1989,20 +2094,6 @@ a {
         grid-template-columns: repeat(2, 1fr);
     }
 
-    .detail-modal {
-        grid-template-columns: 1fr;
-        max-height: 92vh;
-    }
-
-    .detail-image {
-        min-height: 280px;
-        max-height: 340px;
-    }
-
-    .detail-content {
-        padding: 30px 23px 27px;
-    }
-
     .auth-grid {
         grid-template-columns: 1fr;
         gap: 40px;
@@ -2059,11 +2150,28 @@ a {
     }
 
     .nav-inner {
-        min-height: 60px;
+        min-height: 0;
+        flex-wrap: wrap;
+        row-gap: 4px;
+        padding: 10px 0 8px;
     }
 
     .nav-links {
+        order: 3;
+        width: 100%;
+        justify-content: space-between;
+        gap: 10px;
+        font-size: .85rem;
+    }
+
+    .nav-links #nav-saved {
         display: none;
+    }
+
+    .nav-links .primary-button {
+        min-height: 0;
+        padding: 6px 16px;
+        font-size: .85rem;
     }
 
     .mobile-saved {
@@ -2201,15 +2309,6 @@ a {
         justify-content: space-between;
         margin-top: 32px;
         text-align: left;
-    }
-
-    .detail-content {
-        padding: 30px 23px 27px;
-    }
-
-    .detail-image {
-        min-height: 230px;
-        max-height: 250px;
     }
 
     .modal-facts {
@@ -2481,42 +2580,20 @@ a {
     object-fit: cover;
 }
 
+.contact-location-card iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
 .contact-location-card::after {
     content: "";
 
     position: absolute;
     inset: 0;
 
-    background:
-        linear-gradient(
-            rgba(20, 60, 45, 0.1),
-            rgba(20, 60, 45, 0.55)
-        );
 }
-
-.location-overlay {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 20px;
-
-    z-index: 2;
-
-    text-align: center;
-    color: white;
-}
-
-.location-overlay h3 {
-    margin: 0 0 5px;
-    font-family: Georgia, serif;
-    font-size: 18px;
-}
-
-.location-overlay p {
-    margin: 0;
-    font-size: 9px;
-}
-
 
 /* =========================
    FORM
@@ -2633,10 +2710,6 @@ a {
     color: #7a827d;
 }
 
-
-
-
-
 /* =========================
    TABLET
 ========================= */
@@ -2680,6 +2753,79 @@ a {
     .contact-form-row {
         grid-template-columns: 1fr;
         gap: 0;
+    }
+
+    .contact-info,
+    .contact-form-card {
+        min-width: 0;
+    }
+
+    .contact-header {
+        height: 68px;
+    }
+
+    .contact-main {
+        padding: 28px 0 48px;
+    }
+
+    .contact-info h2 {
+        font-size: 22px;
+    }
+
+    .contact-description {
+        font-size: 14px;
+    }
+
+    .contact-icon {
+        flex-shrink: 0;
+        width: 36px;
+        height: 36px;
+    }
+
+    .contact-detail h3 {
+        font-size: 14px;
+    }
+
+    .contact-detail p {
+        font-size: 13px;
+        overflow-wrap: anywhere;
+    }
+
+    .contact-location-card {
+        height: 220px;
+    }
+
+    .contact-form-card {
+        padding: 20px 16px;
+    }
+
+    .contact-field label {
+        font-size: 11px;
+    }
+
+    /* 16px keeps iOS from zooming the page when a field is focused. */
+    .contact-field input,
+    .contact-field select,
+    .contact-field textarea {
+        font-size: 16px;
+    }
+
+    .contact-field input,
+    .contact-field select {
+        height: 44px;
+    }
+
+    .contact-field textarea {
+        height: 140px;
+    }
+
+    .contact-submit {
+        height: 48px;
+        font-size: 15px;
+    }
+
+    .contact-response-text {
+        font-size: 12px;
     }
 
 }
@@ -2868,4 +3014,186 @@ a {
     .admin-field-row {
         grid-template-columns: 1fr;
     }
+}
+
+
+/* Visited-state tint for the modal's Mark as Visited button */
+.secondary-button.is-visited {
+    background: var(--mint);
+    color: var(--forest-green-dark);
+}
+
+
+/* ===================================================================
+   Modal: Google Maps link
+   =================================================================== */
+
+.modal-map-link {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--forest-green);
+}
+
+.modal-map-link:hover {
+    text-decoration: underline;
+}
+
+
+.admin-field-hint {
+    margin: 6px 0 0;
+    font-size: .75rem;
+    color: var(--medium-gray);
+}
+
+/* ===================================================================
+   Destination detail card — gallery layout
+   Appended at the end so it overrides the earlier .detail-modal rules.
+   Modal rules are scoped to .card-layout.
+   =================================================================== */
+
+.detail-modal.card-layout {
+    position: relative;
+    display: block;
+    width: min(680px, 100%);
+    max-height: 92vh;
+}
+
+.card-layout .close-button:not(:hover) {
+    background: var(--cream);
+}
+
+.card-layout .close-button {
+    top: 28px;
+    right: 28px;
+    z-index: 2;
+}
+
+/* ---- Gallery: one large image, three thumbnails underneath ---- */
+
+.card-layout .detail-gallery {
+    display: grid;
+    gap: 10px;
+    padding: 16px 16px 0;
+}
+
+.card-layout .detail-gallery-main {
+    height: 230px;
+    border-radius: 16px;
+}
+
+.card-layout .detail-gallery-thumbs {
+    display: grid;
+    grid-template-columns: repeat(var(--thumbs, 3), 1fr);
+    gap: 10px;
+}
+
+.card-layout .detail-gallery-thumbs:empty {
+    display: none;
+}
+
+.card-layout .detail-thumb {
+    height: 100px;
+    border-radius: 16px;
+}
+
+/* ---- Content ---- */
+
+.card-layout .detail-content {
+    padding: 26px 42px 34px;
+}
+
+.card-layout .detail-title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 14px;
+    margin: 20px 0 0;
+}
+
+.card-layout .detail-content h2 {
+    margin: 0;
+}
+
+.card-layout .modal-rating {
+    margin-top: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.card-layout .modal-facts {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.card-layout .saved-note {
+    margin: 22px 0 0;
+}
+
+.card-layout .reviews-section {
+    margin-top: 30px;
+}
+
+@media (max-width: 620px) {
+    .card-layout .detail-gallery-main {
+        height: 180px;
+    }
+
+    .card-layout .detail-thumb {
+        height: 72px;
+    }
+
+    .card-layout .detail-content {
+        padding: 22px 23px 27px;
+    }
+
+    .card-layout .modal-facts {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---- Admin form: gallery photo slots ---- */
+
+.admin-gallery-slot {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.admin-gallery-slot:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+/* ---- Ecological guidelines (place modal) ---- */
+
+.modal-eco {
+    margin-top: 22px;
+    padding: 16px 18px;
+    border-radius: 10px;
+    background: var(--mint);
+}
+
+.modal-eco p {
+    margin: 0 0 8px;
+    color: var(--forest-green);
+    font-size: .7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+}
+
+.modal-eco ul {
+    margin: 0;
+    padding-left: 0;
+    list-style: none;
+    color: var(--charcoal);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.modal-eco li + li {
+    margin-top: 4px;
 }

@@ -13,55 +13,7 @@
    being locked inside one page's init function.
    ------------------------------------------------------------------- */
 
-const destinations = [
-    // Nature, Falls, Caves & Hiking
-    { id: "biak-na-bato", municipality: "San Miguel", name: "Biak-Na-Bato National Park", description: "Limestone trails, deep riverbeds, and historic caverns — wide trails and river crossings to explore.", location: "Brgy. Poblacion, Biak-na-Bato, San Miguel, 3011 Bulacan", category: "Nature", tag: "Caves & trails", time: "Full-day adventure", imageUrl: "https://i.pinimg.com/1200x/a3/36/4d/a3364d27bc8d86a697ae1a5c71a177a0.jpg" },
-    { id: "tila-pilon-hills", municipality: "Doña Remedios Trinidad", name: "Tila Pilon Hills", description: "Open hills with sweeping ridgelines — a quiet place for sunrise and panoramic views.", location: "Doña Remedios Trinidad, Bulacan", category: "Nature", tag: "Hillwalk", time: "Sunrise", imageUrl: "https://i.pinimg.com/736x/1b/d0/bc/1bd0bc1a3cf5dcac5b08fe627b2c30cd.jpg" },
-    { id: "malangaan-cave", municipality: "San Rafael", name: "Malangaan Cave and Spring / Mount Secret", description: "Cavern passages and a cold spring tucked into ridge-side forests.", location: "San Rafael, Bulacan", category: "Nature", tag: "Cave & spring", time: "Half-day hike", imageUrl: "https://i.pinimg.com/1200x/7b/e0/11/7be011438f2f71171ef846be270860f4.jpg" },
-    { id: "kabayunan-view-deck", municipality: "Doña Remedios Trinidad", name: "Kabayunan View Deck", description: "Highland viewpoint famous for sea-of-clouds mornings and camping.", location: "Brgy. Kabayunan, Doña Remedios Trinidad, Bulacan", category: "Nature", tag: "Viewpoint", time: "Sunrise", imageUrl: "https://i.pinimg.com/736x/fe/0f/a7/fe0fa725457ec0061093f9ed66bbd3b7.jpg" },
-    { id: "angeland-kareta-falls", municipality: "Doña Remedios Trinidad", name: "Angeland Kareta Falls Nature Park", description: "A forested falls with shallow pools and natural swimming spots.", location: "Brgy. Camachile, Doña Remedios Trinidad, 3009 Bulacan", category: "Nature", tag: "Waterfall", time: "Half-day", imageUrl: "https://i.pinimg.com/736x/df/95/02/df95023e57ad7dea0895b9f83204590a.jpg" },
-    { id: "digos-hills", municipality: "Doña Remedios Trinidad", name: "Digo's Hills (Verdivia Trail)", description: "Ridge trails and local viewpoints on the Verdivia route — good for short treks.", location: "Verdivia Trail, Doña Remedios Trinidad, Bulacan", category: "Nature", tag: "Hiking", time: "Morning trek", imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbpuKj7Dfn9RcAlRMaKW3fhlMfq24c6pXSEA4ryY599xfRiqRodR8EFSZV&s=10" },
-    { id: "secret-falls-drt", municipality: "Doña Remedios Trinidad", name: "Secret Falls DRT", description: "A tucked-away waterfall popular with local hikers and picnickers.", location: "Doña Remedios Trinidad, Bulacan", category: "Nature", tag: "Hidden waterfall", time: "Half-day", imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ2HzD9f_yEdFMAXnpmclIGpXu12j1CZennpJfT5zqL12bVoKkyFgwCIHk&s=10" },
-    { id: "pinagrealan-cave", municipality: "Norzagaray", name: "Pinagrealan Cave", description: "A karst cave system of historical importance and rugged chambers.", location: "1562 Curvada Rd, Norzagaray, Bulacan", category: "Nature", tag: "Caving", time: "Guide recommended", imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJA_r9ghSc58JKTNtqFKlkeu4l_X9zJJlfVd62p4jA0Qe7ICEj3kRblZk&s=10" },
-    { id: "mount-manalmon", municipality: "Doña Remedios Trinidad", name: "Mount Manalmon", description: "Famous for its scenic summit ridges and vantage points over nearby valleys.", location: "Doña Remedios Trinidad, 3009 Bulacan", category: "Nature", tag: "Summit hike", time: "Half-day to full-day", imageUrl: "https://cdn.mountains.com.ph/photos/c8072161-8183-40f4-859d-9c951ee77ddb/conversions/3044bd930b7f810d94905f73b68c6235-landscape.jpg" },
-    { id: "tungtong-falls", municipality: "SJDM", name: "Tungtong Falls", description: "A scenic, accessible waterfall for a cool dip after a short walk.", location: "SJDM, Bulacan", category: "Nature", tag: "Waterfall", time: "Short visit", imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ7MlC9HQ4inVT-JsDkh8AKUMisY7gxYRGJ7p6Lix_4nQ5lhxSGuupsnS4d&s=10" },
-    { id: "madlum-cave", municipality: "Doña Remedios Trinidad", name: "Madlum Cave", description: "A network of caves and river channels — popular for exploration and swimming.", location: "Doña Remedios Trinidad, Bulacan", category: "Nature", tag: "Cave & river", time: "Full-day", imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSKFvvdwVpJjAsYkKmYlOl4vR036P0My7GuV0UCVUkP8pZLje2VbK_K_0HQ&s=10" },
-    { id: "bahay-paniki-cave", municipality: "Doña Remedios Trinidad", name: "Bahay Paniki Cave", description: "A cavern near the hanging bridge; a compact but atmospheric spelunking spot.", location: "2nd Hanging Bridge, Doña Remedios Trinidad, Bulacan", category: "Nature", tag: "Cave", time: "Short visit", imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpB-xY693kNV-ueJE9ygM5Y3S3X3orMqm4715xmTq39wRpCXiGV0UZXV6M&s=10" },
-
-    // Historical & Heritage Sites
-    { id: "casa-real-shrine", municipality: "Malolos", name: "Museo ng Kasaysayang Pampulitika ng Pilipinas – Casa Real Shrine", description: "A museum preserving the political history of the province inside a colonial-era house.", location: "Paseo del Congreso, Plaza Rizal, Malolos, 3000 Bulacan", category: "Heritage", tag: "Museum", time: "1 hour", imageUrl: "https://static.where-e.com/Philippines/Central_Luzon_Region/Bulakan/Museo-Ng-Kasaysayang-Pampulitika-Ng-Pilipinas-Casa-Real-Shrine_064d829fad00e5e6c14355197d297840.jpg" },
-    { id: "kalayaan-tree", municipality: "Malolos", name: "Kalayaan Tree", description: "A local landmark with ties to civic memory and open plaza grounds.", location: "Malolos, Bulacan", category: "Heritage", tag: "Landmark", time: "Quick stop", imageUrl: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/07/ce/6d/a9/the-old-tree-and-historical.jpg?w=1200&h=1200&s=1" },
-    { id: "museo-republika-1899", municipality: "Malolos", name: "Museo ng Republika ng 1899", description: "Dedicated to the first Philippine republic and period artifacts.", location: "Malolos, 3000 Bulacan", category: "Heritage", tag: "History", time: "45 minutes", imageUrl: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2c/bb/38/69/caption.jpg?w=1200&h=-1&s=1" },
-    { id: "marcelo-del-pilar-statue", municipality: "Malolos", name: "Marcelo H. Del Pilar Statue", description: "A statue and small park honoring the Bulacan-born propagandist.", location: "Provincial Capitol Grounds, Malolos, Bulacan", category: "Heritage", tag: "Monument", time: "Short visit", imageUrl: "https://businessmirror.com.ph/wp-content/uploads/2026/08/Marcelo-H.-Del-Pilar-Shrine-001.webp" },
-    { id: "gregorio-del-pilar-monument", municipality: "Malolos", name: "Monument of Gregorio Del Pilar", description: "A commemorative monument in the civic heart of Malolos.", location: "Capitol Rd, Malolos, Bulacan", category: "Heritage", tag: "Memorial", time: "Quick stop", imageUrl: "https://live.staticflickr.com/5528/9479830513_5839a6afcf_b.jpg" },
-    { id: "sevilla-mansion", municipality: "San Miguel", name: "Heritage Pockets of San Miguel (Sevilla Mansion)", description: "A preserved mansion and nearby heritage streets worth a slow walk.", location: "cor. Fulgencio & Tecson St, San Miguel, Bulacan", category: "Heritage", tag: "Ancestral home", time: "30 minutes", imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQFr1VgsE8SCj_mR3hrvXsbAI2lVhv4VwFa2AY8F4L_5fK3U2ubCZQr_7OL&s=10" },
-    { id: "ycasiano-enriquez-house", municipality: "Bulakan", name: "Ycasiano-Enriquez Ancestral House", description: "A preserved ancestral home showcasing local domestic architecture.", location: "Matungao St, Bulakan, Bulacan", category: "Heritage", tag: "House museum", time: "By appointment", imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQIKGa6oaaAOoX9iOGULDpYJM3zV6MFgQOK_TxIB-FCJzAa4yALZWXcNTie&s=10" },
-    { id: "guiguinto-malolos-arch", municipality: "Guiguinto", name: "Guiguinto–Malolos Boundary Welcome Arch", description: "A roadside arch marking historic town limits and a photo stop for travelers.", location: "Manila North Rd, Guiguinto, Bulacan", category: "Heritage", tag: "Roadside", time: "Quick stop", imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTtBdzOYEnAuTckr7NDMy1U6a4j-n8n6G-KN_Trk6CTTMhQgnqKct_1XFdP&s=10" },
-    { id: "inang-filipinas-shrine", municipality: "Pandi", name: "Inang Filipinas Shrine", description: "A small shrine with civic and historical symbolism for the local community.", location: "Cacarong De Real, Pandi, Bulacan", category: "Heritage", tag: "Shrine", time: "Short visit", imageUrl: "https://d3fphkxyf5o5bm.cloudfront.net/image-resize/format=webp,w=1200/QwRY54Li1HMwD7oNfqLxPEF5e2p1dvQLXUa7YjY2Zq" },
-    { id: "angat-dam", municipality: "Norzagaray", name: "Angat Dam", description: "A major engineering landmark with viewing points across the reservoir.", location: "Norzagaray, Bulacan", category: "Heritage", tag: "Reservoir view", time: "Short visit", imageUrl: "https://media.philstar.com/photos/2023/07/02/5_2023-07-02_23-29-31.jpg" },
-
-    // Churches & Shrines
-    { id: "barasoain-church", municipality: "Malolos", name: "Barasoain Church (Our Lady of Mount Carmel Parish)", description: "A stone church of paramount historic importance and fine colonial architecture.", location: "Paseo del Congreso cor. Don Antonio Bautista St, Malolos, 3000 Bulacan", category: "Sacred", tag: "Historic church", time: "30–60 minutes", imageUrl: "https://as2.ftcdn.net/jpg/02/66/96/15/1000_F_266961583_7vsjOxLaD9wre1dbEsmZYX4YktptOo2M.jpg" },
-    { id: "malolos-cathedral", municipality: "Malolos", name: "Minor Basilica and Cathedral of the Immaculate Conception (Malolos Cathedral)", description: "A stately cathedral and center of religious life in the city.", location: "Malolos, Bulacan", category: "Sacred", tag: "Basilica", time: "Short visit", imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGubnnx8VNIDweglpbw_avL6z_Pnw3inTwa3pT0UZMBe3Y3fasw-hZ_wA&s=10" },
-    { id: "divine-mercy-shrine", municipality: "Marilao", name: "National Shrine and Parish of the Divine Mercy", description: "A modern pilgrimage site and a quiet place for reflection.", location: "Sta. Rosa I, Marilao, 3019 Bulacan", category: "Sacred", tag: "Pilgrimage", time: "One hour", imageUrl: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/0f/07/97/e9/national-shrine-of-the.jpg?w=1200&h=-1&s=1" },
-    { id: "baliwag-church", municipality: "Baliwag", name: "Diocesan Shrine and Parish of St. Augustine (Baliuag Church)", description: "A landmark parish church known for civic and religious events.", location: "Benigno S. Aquino Ave, Baliwag, Bulacan", category: "Sacred", tag: "Parish", time: "Short visit", imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS0DDaDf--gVlA5a6qzRNqeuoVa9iNstu0vaoKr9xxqI7EYGW-ZbzTUiWoL&s=10" },
-    { id: "calumpit-church", municipality: "Calumpit", name: "Diocesan Shrine and Parish of St. John the Baptist (Calumpit Church)", description: "An old parish in Calumpit with layered colonial details.", location: "Poblacion Rd, Calumpit, 3003 Bulacan", category: "Sacred", tag: "Colonial", time: "Quick stop", imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTabNLTGSO8Sjp7A8ayzFVTTNOOVXSs0w-1rpX_EU2uYOKqZvwut3OKjb4&s=10" },
-    { id: "krus-sa-wawa", municipality: "Bocaue", name: "St. Martin of Tours Parish – Shrine of Krus sa Wawa", description: "A parish with an evocative shrine and riverside setting, home each July to the Bocaue River Festival procession.", location: "Bocaue Town Proper, Bocaue, 3018 Bulacan", category: "Sacred", tag: "Riverside shrine", time: "Short visit", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/6/68/8125Saint_Martin_of_Tours_Parish_Holy_Cross_Shrine_Bulacan_03.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
-    { id: "padre-pio-mountain", municipality: "SJDM", name: "Padre Pio Mountain of Healing", description: "A mountain-side retreat with a devotional atmosphere and scenic access routes.", location: "Area C, Brgy. Paradise, SJDM, 3023 Bulacan", category: "Sacred", tag: "Retreat", time: "Morning", imageUrl: "https://files01.pna.gov.ph/source/2023/04/06/padre-pio-mt.jpg" },
-
-    // Resorts & Waterparks
-    { id: "klir-waterpark", municipality: "Guiguinto", name: "Klir Waterpark Resort and Hotel", description: "A family waterpark and hotel complex with wave pools and slides.", location: "near Sta. Rita Exit, Kabilang Bakood, Guiguinto, Bulacan", category: "Resort", tag: "Waterpark", time: "Day pass", imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRpv6_Sa1GVakYi06mM-QyVJMGQjjO9qXx89FjnUvUUQ&s=10" },
-    { id: "hacienda-angelita", municipality: "San Rafael", name: "Hacienda Angelita Nature Farm and Resort", description: "An agricultural resort, farm café, and relaxing grounds.", location: "268 Balubaran St, Capihan, San Rafael, 3008 Bulacan", category: "Resort", tag: "Farm stay", time: "Half-day or overnight", imageUrl: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2b/6d/c8/5d/our-deluxe-accommodations.jpg?w=900&h=-1&s=1" },
-    { id: "adventure-resort", municipality: "Norzagaray", name: "Adventure Resort", description: "A riverside resort offering rafting and family activities.", location: "Norzagaray-San Jose Rd, Norzagaray, Bulacan", category: "Resort", tag: "Adventure", time: "Half-day", imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlvV-sI2EBc9O0eNJjahV35hShL9PR6IV-L2DRwKQMJo7UeZSsgPogIjM&s=10" },
-    { id: "d-north-riverside", municipality: "Meycauayan", name: "D North Riverside Resort and Waterpark", description: "A sizable waterpark and function-resort outside the city.", location: "305 Cordero, Langka, Meycauayan, 3020 Bulacan", category: "Resort", tag: "Family", time: "Day pass", imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXq5_K59c2_5Gi6VaMYZKooeP0S_7j12v2EdYxd2IElWmKj_Q_nFdaMV0&s=10" },
-    { id: "cool-waves", municipality: "Bulakan", name: "Cool Waves Bulacan Waterpark Resort", description: "A polished waterpark destination with multiple pools and slides.", location: "777 Libo St, San Nicolas, Bulakan, 3017 Bulacan", category: "Resort", tag: "Waterpark", time: "Family day", imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSAhO-9bVBpUwkbLpYO8vPIDnsxA0wSLx7-hEhCli_mc5C7IzgAGoc2Lco&s=10" },
-    { id: "amana-waterpark", municipality: "Pandi", name: "Amana Waterpark", description: "An accessible waterpark hosting families and weekend groups.", location: "Bagong Barrio, Santisima St, Pandi, Bulacan", category: "Resort", tag: "Wave pools", time: "Day pass", imageUrl: "https://jayetravels.com/wp-content/uploads/2025/03/Home-1000x600.jpg" },
-    { id: "malamig-park", municipality: "Bustos", name: "Malamig Park Resort", description: "A relaxing resort with native cottages and pool facilities.", location: "Brgy. Malamig, Bustos, 3007 Bulacan", category: "Resort", tag: "Resort", time: "Day or overnight", imageUrl: "https://static.wixstatic.com/media/9b0063_1dc6246117ae47dfb621333ecd3fec86~mv2.png/v1/fill/w_980,h_689,al_c,q_90,usm_0.66_1.00_0.01,enc_avif,quality_auto/9b0063_1dc6246117ae47dfb621333ecd3fec86~mv2.png" },
-    { id: "san-rafael-river-adventure", municipality: "San Rafael", name: "San Rafael River Adventure", description: "Glamping and river activities in a nature-forward resort setting.", location: "Brgy. Talacsan Rd, San Rafael, 3008 Bulacan", category: "Resort", tag: "Glamping", time: "Overnight worthy", imageUrl: "https://sanrafaelriveradventure.com/wp-content/uploads/2023/08/WhatsApp-Image-2023-08-09-at-11.27.22-1.jpg" },
-    { id: "la-florentina", municipality: "Bustos", name: "La Florentina Resort", description: "A private resort with pool areas and event facilities.", location: "875 Claro Santos, Bonga Menor, Bustos, 3007 Bulacan", category: "Resort", tag: "Private pool", time: "Day pass", imageUrl: "https://images.trvl-media.com/lodging/44000000/43980000/43979400/43979364/5466f954.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill" },
-    { id: "grotto-vista", municipality: "SJDM", name: "Grotto Vista Resort", description: "A hillside resort space with small-scale cabins and pools.", location: "Graceville, SJDM, 3023 Bulacan", category: "Resort", tag: "Small resort", time: "Half-day", imageUrl: "https://tanglawan.ph/wp-content/uploads/2022/04/B1-scaled.jpg" },
-    { id: "pulong-kabyawan", municipality: "Pulilan", name: "Pulong Kabyawan (farm café)", description: "A farm café blending local produce with relaxed garden seating.", location: "Inaon, Pulilan, Bulacan", category: "Resort", tag: "Farm café", time: "Afternoon", imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqkkdIk8OYYaP2YUXlWqNNLINjpN_-61AgSDIiqjTz6CrTOf9uXjOTkao&s=10" }
-];
+const destinations = [];
 
 /* -------------------------------------------------------------------
    Destination rating helpers
@@ -74,13 +26,13 @@ const destinations = [
 let ratingsCache = {};
 
 /**
- * Inserts a new place, or updates an existing one in place (so any
- * page currently rendering the array picks up the edit on next
- * render), keyed by slug.
+ * Inserts a new place, or replaces an existing one keyed by slug.
+ * `previousId` is the slug the place had before an admin edit, so a
+ * changed slug replaces its old entry instead of adding a duplicate.
  */
-function applyDestinationUpdate(place) {
+function applyDestinationUpdate(place, previousId = place.id) {
     const index = destinations.findIndex(
-        (existing) => existing.id === place.id
+        (existing) => existing.id === previousId
     );
 
     if (index === -1) {
@@ -91,10 +43,8 @@ function applyDestinationUpdate(place) {
 }
 
 /**
- * Places added or edited through the admin panel live in the
- * `destinations` DB table; the 40 built-in places live in the array
- * above. Rows here overwrite a built-in place with the same slug
- * (so admin edits actually show up) and any new slug is appended.
+ * The `destinations` DB table is the only source of places. Whatever
+ * the admin panel adds, edits, or deletes is what the guide shows.
  */
 async function syncDestinationsFromServer() {
     try {
@@ -102,12 +52,15 @@ async function syncDestinationsFromServer() {
         const data = await res.json();
 
         if (!data.ok) {
-            return;
+            throw new Error(data.error || "Load failed");
         }
 
-        data.destinations.forEach(applyDestinationUpdate);
+        destinations.splice(0, destinations.length, ...data.destinations);
     } catch {
-        // Offline or unreachable — the guide still shows its built-in list.
+        showToast(
+            "Couldn't load the places right now. Please refresh the page.",
+            "error"
+        );
     }
 }
 
@@ -156,48 +109,92 @@ function findDestination(id) {
     return destinations.find((place) => place.id === id) || null;
 }
 
-/* -------------------------------------------------------------------
-   Seed reviews
-   ------------------------------------------------------------------- */
+/**
+ * A card's photos are the main image followed by the gallery, so the
+ * slider has no data of its own: whatever the admin form saves as
+ * image_url / gallery_images is what slides. Pass `href` when the
+ * photo should link somewhere (the home page's featured cards).
+ */
+function cardSliderMarkup(place, { href = null } = {}) {
+    const urls = [place.imageUrl, ...place.gallery].filter(Boolean);
 
-const seedReviews = {
-    "barasoain-church": [
-        {
-            name: "Maria Santos",
-            initials: "MS",
-            date: "March 2025",
-            rating: 5,
-            text: "Truly magnificent. The architecture is breathtaking and the history embedded in its walls is palpable. A must for every Filipino."
-        },
-        {
-            name: "Jose Reyes",
-            initials: "JR",
-            date: "January 2025",
-            rating: 5,
-            text: "Humbling experience. You can feel the weight of history standing inside. The guide was knowledgeable and passionate."
-        }
-    ],
+    if (urls.length === 0) {
+        urls.push("");
+    }
 
-    "mount-manalmon": [
-        {
-            name: "Paolo Guerrero",
-            initials: "PG",
-            date: "February 2025",
-            rating: 5,
-            text: "The ridge views near the summit are worth every step. Bring more water than you think you need."
-        }
-    ],
+    const name = escapeHtml(place.name);
+    const tag = href ? "a" : "div";
+    const link = href ? ` href="${href}" aria-label="View ${name}"` : "";
 
-    "krus-sa-wawa": [
-        {
-            name: "Elena Pascual",
-            initials: "EP",
-            date: "July 2025",
-            rating: 5,
-            text: "Caught the river festival procession from here — the lit-up pagodas on the water are unlike anything else I've seen."
+    const slides = urls.map((url, index) => `
+        <${tag} class="card-slide image-frame"${link}>
+            <img
+                src="${escapeHtml(url)}"
+                alt="${name} in ${escapeHtml(place.municipality)}${urls.length > 1 ? `, photo ${index + 1}` : ""}"
+                loading="lazy"
+            />
+            <span class="image-fallback" aria-hidden="true">◉</span>
+        </${tag}>`).join("");
+
+    if (urls.length === 1) {
+        return `<div class="card-slider"><div class="card-slides">${slides}</div></div>`;
+    }
+
+    const dots = urls
+        .map((_, index) => `<span class="slider-dot${index === 0 ? " is-active" : ""}"></span>`)
+        .join("");
+
+    return `
+        <div class="card-slider">
+            <div class="card-slides">${slides}</div>
+            <button class="slider-arrow slider-prev" type="button" data-slide-dir="-1" aria-label="Previous photo of ${name}">‹</button>
+            <button class="slider-arrow slider-next" type="button" data-slide-dir="1" aria-label="Next photo of ${name}">›</button>
+            <div class="slider-dots" aria-hidden="true">${dots}</div>
+        </div>`;
+}
+
+/**
+ * Delegated on document so cards re-rendered by filters, favorites, or
+ * an admin save never need their sliders re-wired.
+ */
+function initCardSliders() {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    document.addEventListener("click", (event) => {
+        const arrow = event.target.closest("[data-slide-dir]");
+
+        if (!arrow) {
+            return;
         }
-    ]
-};
+
+        const track = arrow.parentElement.querySelector(".card-slides");
+        const count = track.children.length;
+        const current = Math.round(track.scrollLeft / track.clientWidth);
+        const target = (current + Number(arrow.dataset.slideDir) + count) % count;
+
+        track.scrollTo({
+            left: target * track.clientWidth,
+            behavior: reduceMotion.matches ? "auto" : "smooth"
+        });
+    });
+
+    // scroll events don't bubble, so listen in the capture phase.
+    document.addEventListener("scroll", (event) => {
+        const track = event.target;
+
+        if (!(track instanceof Element) || !track.classList.contains("card-slides")) {
+            return;
+        }
+
+        const current = Math.round(track.scrollLeft / track.clientWidth);
+
+        track.parentElement
+            .querySelectorAll(".slider-dot")
+            .forEach((dot, index) => {
+                dot.classList.toggle("is-active", index === current);
+            });
+    }, true);
+}
 
 /* ===================================================================
    AUTH PAGE
@@ -267,29 +264,6 @@ function toggleSignupPassword(button) {
 }
 
 
-/*
- * IMPORTANT:
- *
- * PHP handles authentication.
- *
- * The OLD version was:
- *
- * function handleAuthSubmit(event) {
- *     event.preventDefault();
- *     window.location.href = "userprofile.php";
- * }
- *
- * That was causing the problem because JavaScript stopped the form
- * from being submitted to login.php/signup.php.
- *
- * This function now allows the normal form submission to continue.
- *
- * You can also remove this function completely if you remove
- * onsubmit="handleAuthSubmit(event)" from auth.php.
- */
-function handleAuthSubmit(event) {
-    return true;
-}
 
 
 /* ===================================================================
@@ -309,8 +283,6 @@ function initHomePage() {
         "krus-sa-wawa"
     ];
 
-    const favorites = readFavorites();
-
     grid.innerHTML = featuredIds.map((id, index) => {
         const place = findDestination(id);
 
@@ -319,23 +291,13 @@ function initHomePage() {
         }
 
         const { rating, reviews } = ratingFor(place);
-        const isFavorite = favorites.includes(place.id);
+        
 
         return `
         <article class="destination-card" style="animation-delay:${index * .06}s">
 
-            <a
-                class="card-media image-frame"
-                href="destination.php?place=${encodeURIComponent(place.id)}#places"
-                aria-label="View ${escapeHtml(place.name)}"
-            >
-                <img
-                    src="${escapeHtml(place.imageUrl || "")}"
-                    alt="${escapeHtml(place.name)} in ${escapeHtml(place.municipality)}"
-                    loading="lazy"
-                />
-
-                <span class="image-fallback" aria-hidden="true">◉</span>
+            <div class="card-media image-frame card-media--link">
+                ${cardSliderMarkup(place, { href: `destination.php?place=${encodeURIComponent(place.id)}#places` })}
 
                 <span class="card-badge category-label">
                     ${escapeHtml(place.category)}
@@ -345,7 +307,7 @@ function initHomePage() {
                     <span class="star" aria-hidden="true">★</span>
                     ${rating}
                 </span>
-            </a>
+            </div>
 
             <div class="card-content">
 
@@ -417,38 +379,13 @@ function initDestinationPage() {
         query: "",
         municipality: municipalities[0],
         category: categories[0],
-        showSaved: false,
+        showSaved: new URLSearchParams(window.location.search).get("saved") === "1",
         favorites: readFavorites(),
-        reviews: readReviews(),
+        visited: readVisited(),
         reviewRating: 5,
         selected: null,
         myReview: null
     };
-
-    function readReviews() {
-        try {
-            return JSON.parse(
-                localStorage.getItem("travelbuddies-reviews") || "{}"
-            );
-        } catch {
-            return {};
-        }
-    }
-
-    function writeReviews() {
-        localStorage.setItem(
-            "travelbuddies-reviews",
-            JSON.stringify(state.reviews)
-        );
-    }
-
-    function getReviewsFor(placeId) {
-        if (state.reviews[placeId]) {
-            return state.reviews[placeId];
-        }
-
-        return seedReviews[placeId] || [];
-    }
 
     const elements = {
         grid,
@@ -462,6 +399,7 @@ function initDestinationPage() {
         results: document.querySelector("#results-count"),
         modal: document.querySelector("#detail-modal"),
         modalImage: document.querySelector("#modal-image"),
+        modalGallery: document.querySelector("#modal-gallery"),
         modalKicker: document.querySelector("#modal-kicker"),
         modalTitle: document.querySelector("#modal-title"),
         modalMunicipality: document.querySelector("#modal-municipality"),
@@ -469,8 +407,12 @@ function initDestinationPage() {
         modalDescription: document.querySelector("#modal-description"),
         modalTags: document.querySelector("#modal-tags"),
         modalLocation: document.querySelector("#modal-location"),
+        modalMapLink: document.querySelector("#modal-map-link"),
         modalTime: document.querySelector("#modal-time"),
+        modalEco: document.querySelector("#modal-eco"),
+        modalEcoList: document.querySelector("#modal-eco-list"),
         modalFavorite: document.querySelector("#modal-favorite"),
+        modalVisited: document.querySelector("#modal-visited"),
         modalShare: document.querySelector("#modal-share"),
         shareLabel: document.querySelector("#share-label"),
         writeReviewBtn: document.querySelector("#write-review-btn"),
@@ -495,9 +437,13 @@ function initDestinationPage() {
         adminTag: document.querySelector("#admin-field-tag"),
         adminFieldNote: document.querySelector("#admin-field-note"),
         adminLocation: document.querySelector("#admin-field-location"),
+        adminMapsUrl: document.querySelector("#admin-field-maps-url"),
         adminImageUrl: document.querySelector("#admin-field-image-url"),
         adminImageFile: document.querySelector("#admin-field-image-file"),
+        adminGalleryUrls: [...document.querySelectorAll(".admin-gallery-url")],
+        adminGalleryFiles: [...document.querySelectorAll(".admin-gallery-file")],
         adminDescription: document.querySelector("#admin-field-description"),
+        adminEco: document.querySelector("#admin-field-eco"),
         adminError: document.querySelector("#admin-form-error"),
         adminDeleteBtn: document.querySelector("#admin-delete-btn")
     };
@@ -506,6 +452,13 @@ function initDestinationPage() {
         localStorage.setItem(
             "travelbuddies-favorites",
             JSON.stringify(state.favorites)
+        );
+    }
+
+    function writeVisited() {
+        localStorage.setItem(
+            "travelbuddies-visited",
+            JSON.stringify(state.visited)
         );
     }
 
@@ -603,18 +556,7 @@ function initDestinationPage() {
 
                     <div class="card-media image-frame">
 
-                        <img
-                            src="${escapeHtml(place.imageUrl || "")}"
-                            alt="${escapeHtml(place.name)} in ${escapeHtml(place.municipality)}"
-                            loading="lazy"
-                        />
-
-                        <span
-                            class="image-fallback"
-                            aria-hidden="true"
-                        >
-                            ◉
-                        </span>
+                        ${cardSliderMarkup(place)}
 
                         <span class="card-badge category-label">
                             ${escapeHtml(place.category)}
@@ -768,7 +710,7 @@ function initDestinationPage() {
             state.selected &&
             state.selected.id === id
         ) {
-            renderModal(state.selected);
+            renderModal(state.selected, { keepReviewDraft: true });
         }
 
         fetch("api/toggle_favorite.php", {
@@ -785,7 +727,8 @@ function initDestinationPage() {
                     throw new Error(data.error || "Save failed");
                 }
             })
-            .catch(() => {
+            .catch((error) => {
+                showToast(apiFailureMessage(error, "Couldn't save that right now. Please try again."), "error");
                 // Couldn't save to the account — undo the optimistic
                 // update so the UI doesn't claim it's saved when it isn't.
                 state.favorites = wasFavorite
@@ -799,7 +742,63 @@ function initDestinationPage() {
                     state.selected &&
                     state.selected.id === id
                 ) {
-                    renderModal(state.selected);
+                    renderModal(state.selected, { keepReviewDraft: true });
+                }
+            });
+    }
+
+    function toggleVisited(id) {
+        if (!window.APP_CONFIG || !window.APP_CONFIG.loggedIn) {
+            window.location.href = "auth.php";
+            return;
+        }
+
+        const wasVisited = state.visited.includes(id);
+
+        state.visited = wasVisited
+            ? state.visited.filter(
+                (item) => item !== id
+            )
+            : [...state.visited, id];
+
+        writeVisited();
+
+        if (
+            state.selected &&
+            state.selected.id === id
+        ) {
+            renderModal(state.selected, { keepReviewDraft: true });
+        }
+
+        fetch("api/toggle_visited.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                slug: id,
+                csrf_token: window.APP_CONFIG.csrfToken
+            })
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                if (!data.ok) {
+                    throw new Error(data.error || "Save failed");
+                }
+            })
+            .catch((error) => {
+                showToast(apiFailureMessage(error, "Couldn't save that right now. Please try again."), "error");
+                // Couldn't save to the account — undo the optimistic
+                // update so the UI doesn't claim it's visited when it isn't.
+                state.visited = wasVisited
+                    ? [...state.visited, id]
+                    : state.visited.filter((item) => item !== id);
+
+                writeVisited();
+
+                if (
+                    state.selected &&
+                    state.selected.id === id
+                ) {
+                    renderModal(state.selected, { keepReviewDraft: true });
                 }
             });
     }
@@ -873,10 +872,10 @@ function initDestinationPage() {
         state.myReview = null;
         updateReviewButtonLabels();
 
-        // Paint immediately from local/seed data so the modal never
-        // looks empty while the network request is in flight, then
-        // replace it with the real database reviews once they load.
-        paintReviews(getReviewsFor(place.id));
+        // Loading, not fabricated content, while the real reviews load.
+        elements.reviewList.innerHTML = `
+            <p class="review-empty">Loading reviews…</p>
+        `;
 
         fetch(
             `api/get_reviews.php?slug=${encodeURIComponent(place.id)}`
@@ -887,18 +886,17 @@ function initDestinationPage() {
                     return;
                 }
 
-                // Only replace the placeholder if the database actually
-                // has reviews — an empty result usually just means the
-                // destinations table hasn't been seeded for this place yet.
-                if (data.reviews.length > 0) {
-                    paintReviews(data.reviews);
-                }
+                // A real empty result is honest — show it rather than
+                // leaving old content up.
+                paintReviews(data.reviews);
 
                 state.myReview = data.mine || null;
                 updateReviewButtonLabels();
             })
             .catch(() => {
-                // Database not reachable — keep showing the local/seed list.
+                elements.reviewList.innerHTML = `
+                    <p class="review-empty">Couldn't load reviews right now. Try again shortly.</p>
+                `;
             });
     }
 
@@ -950,7 +948,11 @@ function initDestinationPage() {
                         <div class="review-who">
 
                             <span class="review-avatar">
-                                ${escapeHtml(review.initials)}
+                                ${
+                                    review.photo
+                                        ? `<img src="${escapeHtml(review.photo)}" alt="" class="review-avatar-image">`
+                                        : escapeHtml(review.initials)
+                                }
                             </span>
 
                             <div>
@@ -1045,14 +1047,15 @@ function initDestinationPage() {
                     `;
                 }
             })
-            .catch(() => {
-                alert(
-                    "Couldn't save your review right now — please try again."
+            .catch((error) => {
+                showToast(
+                    apiFailureMessage(error, "Couldn't save your review right now. Please try again."),
+                    "error"
                 );
             });
     }
 
-    function renderModal(place) {
+    function renderModal(place, { keepReviewDraft = false } = {}) {
         state.selected = place;
 
         const { rating, reviews } =
@@ -1064,6 +1067,26 @@ function initDestinationPage() {
         elements.modalImage.alt =
             `${place.name} in ${place.municipality}`;
 
+        elements.modalGallery.innerHTML = place.gallery
+            .map((url, index) => `
+                <div class="detail-thumb image-frame">
+                    <img
+                        src="${escapeHtml(url)}"
+                        alt="${escapeHtml(place.name)} photo ${index + 2}"
+                        loading="lazy"
+                    />
+                    <span class="image-fallback" aria-hidden="true">◉</span>
+                </div>
+            `)
+            .join("");
+
+        elements.modalGallery.style.setProperty(
+            "--thumbs",
+            place.gallery.length
+        );
+
+        wireImageFallbacks();
+
         elements.modalKicker.textContent =
             `${place.category} / ${place.tag || ""}`;
 
@@ -1073,17 +1096,13 @@ function initDestinationPage() {
         elements.modalMunicipality.textContent =
             place.municipality;
 
-        if (elements.modalRating) {
-            elements.modalRating.innerHTML = `
-                <span aria-hidden="true">
-                    ${starString(rating)}
-                </span>
-
-                <span class="count">
-                    ${rating} (${reviews} reviews)
-                </span>
-            `;
-        }
+        elements.modalRating.innerHTML = `
+            <span aria-hidden="true">★</span>
+            ${rating}
+            <span class="count">
+                (${reviews} reviews)
+            </span>
+        `;
 
         elements.modalDescription.textContent =
             place.description;
@@ -1107,8 +1126,34 @@ function initDestinationPage() {
         elements.modalLocation.textContent =
             place.location;
 
+        if (elements.modalMapLink) {
+            const mapsHref = place.mapsUrl ||
+                (place.location
+                    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.location)}`
+                    : null);
+
+            if (mapsHref) {
+                elements.modalMapLink.href = mapsHref;
+                elements.modalMapLink.classList.remove("hidden");
+            } else {
+                elements.modalMapLink.removeAttribute("href");
+                elements.modalMapLink.classList.add("hidden");
+            }
+        }
+
         elements.modalTime.textContent =
             place.time || "";
+
+        const ecoLines = place.ecoGuidelines
+            .split("\n")
+            .map((line) => line.trim())
+            .filter(Boolean);
+
+        elements.modalEcoList.innerHTML = ecoLines
+            .map((line) => `<li>${escapeHtml(line)}</li>`)
+            .join("");
+
+        elements.modalEco.classList.toggle("hidden", ecoLines.length === 0);
 
         const isFavorite =
             state.favorites.includes(place.id);
@@ -1122,12 +1167,30 @@ function initDestinationPage() {
             }
         `;
 
+        const isVisited =
+            state.visited.includes(place.id);
+
+        elements.modalVisited.innerHTML = `
+            ${isVisited ? "✓" : "⚑"}
+            ${
+                isVisited
+                    ? "Visited"
+                    : "Mark as Visited"
+            }
+        `;
+
+        elements.modalVisited.classList.toggle(
+            "is-visited",
+            isVisited
+        );
+
         elements.shareLabel.textContent =
             "Share the note";
 
-        resetReviewForm();
-        renderReviews(place);
-
+        if (!keepReviewDraft) {
+            resetReviewForm();
+            renderReviews(place);
+        }
         elements.modal.classList.remove("hidden");
 
         document.body.style.overflow =
@@ -1405,6 +1468,17 @@ function initDestinationPage() {
         }
     );
 
+    elements.modalVisited?.addEventListener(
+        "click",
+        () => {
+            if (state.selected) {
+                toggleVisited(
+                    state.selected.id
+                );
+            }
+        }
+    );
+
     elements.modalShare?.addEventListener(
         "click",
         () => {
@@ -1426,6 +1500,7 @@ function initDestinationPage() {
         }
 
         elements.adminError?.classList.add("hidden");
+        elements.adminForm.reset();
 
         if (place) {
             elements.adminTitle.textContent = "Edit place";
@@ -1437,12 +1512,16 @@ function initDestinationPage() {
             elements.adminTag.value = place.tag || "";
             elements.adminFieldNote.value = place.time || "";
             elements.adminLocation.value = place.location || "";
+            elements.adminMapsUrl.value = place.mapsUrl || "";
             elements.adminImageUrl.value = place.imageUrl || "";
+            elements.adminGalleryUrls.forEach((input, index) => {
+                input.value = place.gallery[index] || "";
+            });
             elements.adminDescription.value = place.description || "";
+            elements.adminEco.value = place.ecoGuidelines;
             elements.adminDeleteBtn?.classList.remove("hidden");
         } else {
             elements.adminTitle.textContent = "Add a new place";
-            elements.adminForm?.reset();
             elements.adminOriginalSlug.value = "";
             elements.adminDeleteBtn?.classList.add("hidden");
         }
@@ -1487,6 +1566,8 @@ function initDestinationPage() {
         (event) => {
             event.preventDefault();
 
+            const previousId = elements.adminOriginalSlug.value;
+
             const formData = new FormData();
             formData.append("csrf_token", window.APP_CONFIG.csrfToken);
             formData.append("original_slug", elements.adminOriginalSlug.value);
@@ -1497,12 +1578,25 @@ function initDestinationPage() {
             formData.append("tag", elements.adminTag.value);
             formData.append("field_note", elements.adminFieldNote.value.trim());
             formData.append("location", elements.adminLocation.value.trim());
+            formData.append("maps_url", elements.adminMapsUrl.value.trim());
             formData.append("image_url", elements.adminImageUrl.value.trim());
             formData.append("description", elements.adminDescription.value.trim());
+            formData.append("eco_guidelines", elements.adminEco.value.trim());
 
             if (elements.adminImageFile.files[0]) {
                 formData.append("image_file", elements.adminImageFile.files[0]);
             }
+
+            elements.adminGalleryUrls.forEach((input, index) => {
+                const slot = index + 1;
+                const file = elements.adminGalleryFiles[index].files[0];
+
+                formData.append(`gallery_url_${slot}`, input.value.trim());
+
+                if (file) {
+                    formData.append(`gallery_file_${slot}`, file);
+                }
+            });
 
             fetch("api/admin_save_destination.php", {
                 method: "POST",
@@ -1514,15 +1608,16 @@ function initDestinationPage() {
                         throw new Error(data.error || "Save failed");
                     }
 
-                    applyDestinationUpdate(data.destination);
+                    const replacedId = previousId || data.destination.id;
+                    applyDestinationUpdate(data.destination, replacedId);
                     closeAdminEditModal();
                     renderCards();
 
                     if (
                         state.selected &&
-                        state.selected.id === data.destination.id
+                        state.selected.id === replacedId
                     ) {
-                        renderModal(state.selected);
+                        renderModal(data.destination, { keepReviewDraft: true });
                     }
 
                     showToast("Place saved.", "success");
@@ -1729,6 +1824,18 @@ function readFavorites() {
     }
 }
 
+function readVisited() {
+    try {
+        return JSON.parse(
+            localStorage.getItem(
+                "travelbuddies-visited"
+            ) || "[]"
+        );
+    } catch {
+        return [];
+    }
+}
+
 /**
  * The favorites cache is only ever meaningful for whoever is logged in.
  * Without this, logging out leaves the previous account's saved count
@@ -1736,6 +1843,18 @@ function readFavorites() {
  */
 function clearLocalFavorites() {
     localStorage.removeItem("travelbuddies-favorites");
+}
+
+function clearLocalVisited() {
+    localStorage.removeItem("travelbuddies-visited");
+}
+
+/**
+ * Server-side rejections are thrown as plain Errors carrying the
+ * server's message; anything else (offline, bad JSON) gets `fallback`.
+ */
+function apiFailureMessage(error, fallback) {
+    return error.name === "Error" ? error.message : fallback;
 }
 
 /**
@@ -1813,6 +1932,27 @@ async function syncFavoritesFromServer() {
     }
 }
 
+async function syncVisitedFromServer() {
+    if (!window.APP_CONFIG || !window.APP_CONFIG.loggedIn) {
+        return;
+    }
+
+    try {
+        const res = await fetch("api/get_visited.php");
+        const data = await res.json();
+
+        if (data.ok) {
+            localStorage.setItem(
+                "travelbuddies-visited",
+                JSON.stringify(data.visited)
+            );
+        }
+    } catch {
+        // Offline or the API isn't reachable — fall back to
+        // whatever was already cached in this browser.
+    }
+}
+
 
 function wireImageFallbacks() {
     document
@@ -1860,6 +2000,24 @@ function updateCounts() {
     }
 }
 
+
+/**
+ * Outside the guide page there is no list to filter, so the Saved
+ * buttons send the visitor to the guide with the saved filter on.
+ */
+function initSavedNav() {
+    if (document.querySelector("#destination-grid")) {
+        return;
+    }
+
+    document
+        .querySelectorAll("#nav-saved, #mobile-saved")
+        .forEach((button) => {
+            button.addEventListener("click", () => {
+                window.location.href = "destination.php?saved=1#places";
+            });
+        });
+}
 
 /* ===================================================================
    PROFILE PAGE
@@ -1960,141 +2118,6 @@ function toggleEditMode() {
 }
 
 
-function saveBio() {
-    const textarea =
-        document.getElementById(
-            "bioTextarea"
-        );
-
-    const display =
-        document.getElementById(
-            "bioDisplay"
-        );
-
-    if (!textarea || !display) {
-        return;
-    }
-
-    display.textContent =
-        textarea.value.trim();
-
-    toggleEditMode();
-}
-
-
-function saveSettings() {
-    const name =
-        document.getElementById(
-            "settingsName"
-        )?.value ?? "";
-
-    const email =
-        document.getElementById(
-            "settingsEmail"
-        )?.value ?? "";
-
-    const location =
-        document.getElementById(
-            "settingsLocation"
-        )?.value ?? "";
-
-    const newPassword =
-        document.getElementById(
-            "settingsNewPassword"
-        )?.value ?? "";
-
-    const confirmPassword =
-        document.getElementById(
-            "settingsConfirmPassword"
-        )?.value ?? "";
-
-    if (
-        newPassword ||
-        confirmPassword
-    ) {
-        if (
-            newPassword !==
-            confirmPassword
-        ) {
-            alert(
-                "Passwords don't match. Please try again."
-            );
-
-            return;
-        }
-    }
-
-    const headerName =
-        document.getElementById(
-            "headerName"
-        );
-
-    const headerEmail =
-        document.getElementById(
-            "headerEmail"
-        );
-
-    const headerLocation =
-        document.getElementById(
-            "headerLocation"
-        );
-
-    if (headerName) {
-        headerName.textContent =
-            name;
-    }
-
-    if (headerEmail) {
-        headerEmail.textContent =
-            email;
-    }
-
-    if (headerLocation) {
-        headerLocation.textContent =
-            location;
-    }
-
-    const newPasswordField =
-        document.getElementById(
-            "settingsNewPassword"
-        );
-
-    const confirmPasswordField =
-        document.getElementById(
-            "settingsConfirmPassword"
-        );
-
-    if (newPasswordField) {
-        newPasswordField.value =
-            "";
-    }
-
-    if (confirmPasswordField) {
-        confirmPasswordField.value =
-            "";
-    }
-
-    const confirmMessage =
-        document.getElementById(
-            "saveConfirm"
-        );
-
-    if (confirmMessage) {
-        confirmMessage.classList.add(
-            "show"
-        );
-
-        window.setTimeout(
-            () =>
-                confirmMessage.classList.remove(
-                    "show"
-                ),
-            2500
-        );
-    }
-}
-
-
 /*
  * FIXED LOGOUT
  *
@@ -2159,6 +2182,7 @@ document.addEventListener(
         if (window.APP_CONFIG && window.APP_CONFIG.loggedIn) {
             await Promise.all([
                 syncFavoritesFromServer(),
+                syncVisitedFromServer(),
                 syncRatingsFromServer(),
                 syncDestinationsFromServer()
             ]);
@@ -2167,6 +2191,7 @@ document.addEventListener(
             // in this browser are leftovers from a previous account
             // (most commonly: right after logging out).
             clearLocalFavorites();
+            clearLocalVisited();
             await Promise.all([
                 syncRatingsFromServer(),
                 syncDestinationsFromServer()
@@ -2179,8 +2204,10 @@ document.addEventListener(
                 .forEach((el) => el.classList.remove("hidden"));
         }
 
+        initCardSliders();
         initHomePage();
         initDestinationPage();
+        initSavedNav();
         updateCounts();
     }
 );

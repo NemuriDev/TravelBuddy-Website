@@ -5,23 +5,30 @@ $loggedIn = isLoggedIn();
 $user = getCurrentUser();
 $csrf_token = generateCSRFToken();
 
-// No need for $db or $link unless they are used later
+$db = getDBConnection();
+if (!$db) {
+    http_response_code(500);
+    exit('Database unavailable');
+}
+$stats = $db->query("SELECT COUNT(*) AS places, COUNT(DISTINCT municipality) AS towns FROM destinations")->fetch();
+$placeCount = (int) $stats['places'];
+$townCount = (int) $stats['towns'];
 ?>
 <!doctype html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="TravelBuddies — a visual field guide to places worth the detour in Bulacan." />
-    <meta property="og:title" content="TravelBuddies — Bulacan Field Guide" />
-    <meta property="og:description" content="Forty places, twenty towns, one province worth the long way round." />
-    <title>TravelBuddies — Home</title>
+    <meta name="description" content="TravelBuddy — a visual field guide to places worth the detour in Bulacan." />
+    <meta property="og:title" content="TravelBuddy — Bulacan Field Guide" />
+    <meta property="og:description" content="<?= $placeCount ?> places, <?= $townCount ?> towns, one province worth the long way round." />
+    <title>TravelBuddy — Home</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap"
         rel="stylesheet" />
-    <link rel="stylesheet" href="style.css?v=6">
+    <link rel="stylesheet" href="style.css?v=<?= filemtime(__DIR__ . '/style.css') ?>">
 </head>
 
 <body>
@@ -32,7 +39,7 @@ $csrf_token = generateCSRFToken();
             <div class="hero-copy reveal">
                 <p class="section-kicker">Province of Bulacan</p>
                 <h1 id="hero-title">Where history meets <em>living nature</em>.</h1>
-                <p class="hero-description">Forty places across twenty towns — stone churches, river valleys,
+                <p class="hero-description"><?= $placeCount ?> places across <?= $townCount ?> towns — stone churches, river valleys,
                     hidden falls, and a festival that lights up the water every July. Start wherever your
                     Saturday takes you.</p>
                 <div class="hero-actions">
@@ -61,7 +68,7 @@ $csrf_token = generateCSRFToken();
                     <p class="section-kicker">Handpicked for you</p>
                     <h2 id="featured-title">Top Destinations</h2>
                 </div>
-                <a class="view-all-link" href="destination.php#places">View all 40 places <span aria-hidden="true">→</span></a>
+                <a class="view-all-link" href="destination.php#places">View all places <span aria-hidden="true">→</span></a>
             </div>
             <div class="destination-grid" id="featured-grid"></div>
         </section>
@@ -69,6 +76,6 @@ $csrf_token = generateCSRFToken();
         <?php include __DIR__ . '/footer.php'; ?>
     </main>
 
-    <script src="script.js" defer></script>
+    <script src="script.js?v=<?= filemtime(__DIR__ . '/script.js') ?>" defer></script>
 </body>
 </html>

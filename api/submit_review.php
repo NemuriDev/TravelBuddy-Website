@@ -8,7 +8,7 @@ if (!isLoggedIn()) {
 $body = apiReadJsonBody();
 
 if (!isset($body['csrf_token']) || !verifyCSRFToken($body['csrf_token'])) {
-    apiError('Invalid CSRF token', 403);
+    apiError('Your session expired. Please refresh the page and try again.', 403);
 }
 
 $slug = trim($body['slug'] ?? '');
@@ -21,6 +21,10 @@ if ($slug === '' || $comment === '') {
 
 if ($rating < 1 || $rating > 5) {
     apiError('Rating must be between 1 and 5');
+}
+
+if (mb_strlen($comment) > 1000) {
+    apiError('Review must be 1000 characters or fewer');
 }
 
 $db = getDBConnection();
