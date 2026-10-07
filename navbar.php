@@ -2,13 +2,6 @@
 require_once __DIR__ . '/config.php';
 /**
  * Shared navbar.
- *
- * Include this after setting, optionally:
- *   $activePage = 'home' | 'destination' | 'contact' | 'auth' | 'profile';
- *   $loggedIn   = true | false;  // should be set from session
- *   $user       = getCurrentUser(); // for name/initials
- *
- * Defaults are safe if none of these are set before the include.
  */
 $activePage = $activePage ?? '';
 $loggedIn   = $loggedIn ?? false;
