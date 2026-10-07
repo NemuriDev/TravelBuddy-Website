@@ -13,7 +13,6 @@ $stmt = $db->query("
 ");
 
 // Field names line up with the shape script.js's `destinations`
-// array uses, so the frontend can merge these in directly.
 $places = array_map(function ($row) {
     return [
         'id' => $row['slug'],
